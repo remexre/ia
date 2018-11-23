@@ -317,7 +317,7 @@ name = "engine"
 version = "0.1.0"
 dependencies = [
  "failure 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)",
- "frunk 0.2.2 (git+https://github.com/remexre/frunk.git?branch=hmappable_fnmut)",
+ "frunk 0.2.2 (git+https://github.com/remexre/frunk.git?branch=funcmut_polymut)",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "rayon 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -394,23 +394,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "frunk"
 version = "0.2.2"
-source = "git+https://github.com/remexre/frunk.git?branch=hmappable_fnmut#20e07a7e0f159f21d8f9bacef8d9fc49a943b7ad"
+source = "git+https://github.com/remexre/frunk.git?branch=funcmut_polymut#f06e2e01d2b45c399aa84815bf075016f30043d9"
 dependencies = [
- "frunk_core 0.2.2 (git+https://github.com/remexre/frunk.git?branch=hmappable_fnmut)",
- "frunk_derives 0.2.2 (git+https://github.com/remexre/frunk.git?branch=hmappable_fnmut)",
+ "frunk_core 0.2.2 (git+https://github.com/remexre/frunk.git?branch=funcmut_polymut)",
+ "frunk_derives 0.2.2 (git+https://github.com/remexre/frunk.git?branch=funcmut_polymut)",
 ]
 
 [[package]]
 name = "frunk_core"
 version = "0.2.2"
-source = "git+https://github.com/remexre/frunk.git?branch=hmappable_fnmut#20e07a7e0f159f21d8f9bacef8d9fc49a943b7ad"
+source = "git+https://github.com/remexre/frunk.git?branch=funcmut_polymut#f06e2e01d2b45c399aa84815bf075016f30043d9"
 
 [[package]]
 name = "frunk_derives"
 version = "0.2.2"
-source = "git+https://github.com/remexre/frunk.git?branch=hmappable_fnmut#20e07a7e0f159f21d8f9bacef8d9fc49a943b7ad"
+source = "git+https://github.com/remexre/frunk.git?branch=funcmut_polymut#f06e2e01d2b45c399aa84815bf075016f30043d9"
 dependencies = [
- "frunk_core 0.2.2 (git+https://github.com/remexre/frunk.git?branch=hmappable_fnmut)",
+ "frunk_core 0.2.2 (git+https://github.com/remexre/frunk.git?branch=funcmut_polymut)",
  "quote 0.6.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "syn 0.15.21 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -1540,9 +1540,9 @@ dependencies = [
 "checksum fnv 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)" = "2fad85553e09a6f881f739c29f0b00b0f01357c743266d478b68951ce23285f3"
 "checksum foreign-types 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "f6f339eb8adc052cd2ca78910fda869aefa38d22d5cb648e6485e4d3fc06f3b1"
 "checksum foreign-types-shared 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
-"checksum frunk 0.2.2 (git+https://github.com/remexre/frunk.git?branch=hmappable_fnmut)" = "<none>"
-"checksum frunk_core 0.2.2 (git+https://github.com/remexre/frunk.git?branch=hmappable_fnmut)" = "<none>"
-"checksum frunk_derives 0.2.2 (git+https://github.com/remexre/frunk.git?branch=hmappable_fnmut)" = "<none>"
+"checksum frunk 0.2.2 (git+https://github.com/remexre/frunk.git?branch=funcmut_polymut)" = "<none>"
+"checksum frunk_core 0.2.2 (git+https://github.com/remexre/frunk.git?branch=funcmut_polymut)" = "<none>"
+"checksum frunk_derives 0.2.2 (git+https://github.com/remexre/frunk.git?branch=funcmut_polymut)" = "<none>"
 "checksum fuchsia-zircon 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "2e9763c69ebaae630ba35f74888db465e49e259ba1bc0eda7d06f4a067615d82"
 "checksum fuchsia-zircon-sys 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "3dcaa9ae7725d12cdb85b3ad99a434db70b468c09ded17e012d86b5c1010f7a7"
 "checksum gcc 0.3.55 (registry+https://github.com/rust-lang/crates.io-index)" = "8f5f3913fa0bfe7ee1fd8248b6b9f42a5af4b9d65ec2dd2c3c26132b950ecfc2"
