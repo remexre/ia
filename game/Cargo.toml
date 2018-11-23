@@ -1,0 +1,11 @@
+[package]
+name = "ia"
+version = "0.1.0"
+authors = ["Nathan Ringo <remexre@gmail.com>"]
+
+[dependencies]
+engine = { path = "../engine" }
+failure = "0.1.3"
+log = "0.4.6"
+stderrlog = "0.4.1"
+structopt = "0.2.13"

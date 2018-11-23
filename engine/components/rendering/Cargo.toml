@@ -1,0 +1,9 @@
+[package]
+name = "rendering"
+version = "0.1.0"
+authors = ["Nathan Ringo <remexre@gmail.com>"]
+
+[dependencies]
+cgmath = "0.16.1"
+failure = "0.1.3"
+glium = "0.22.0"

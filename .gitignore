@@ -1,0 +1,6 @@
+.*
+!.gitattributes
+!.gitignore
+!.travis.yml
+
+target/
