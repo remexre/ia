@@ -1,7 +1,8 @@
 [package]
+authors = ["Nathan Ringo <remexre@gmail.com>"]
+edition = "2018"
 name = "scripting"
 version = "0.1.0"
-authors = ["Nathan Ringo <remexre@gmail.com>"]
 
 [dependencies.inkwell]
 branch = "llvm6-0"

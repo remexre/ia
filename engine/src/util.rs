@@ -1,6 +1,7 @@
 //! Miscellaneous utilities.
 
 use failure::Error;
+use log::error;
 
 /// Logs an error, including its causes and backtrace (if possible).
 pub fn log_err(err: Error) {

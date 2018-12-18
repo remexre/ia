@@ -1,14 +1,7 @@
-extern crate engine;
-#[macro_use]
-extern crate failure;
-#[macro_use]
-extern crate log;
-extern crate stderrlog;
-extern crate structopt;
-
 use engine::util::log_err;
-use failure::{Fallible, ResultExt};
-use std::{path::PathBuf, process::exit};
+use failure::Fallible;
+use log::error;
+use std::process::exit;
 use structopt::StructOpt;
 
 fn main() {
@@ -45,7 +38,7 @@ impl Options {
     }
 }
 
-fn run(options: Options) -> Fallible<()> {
+fn run(_options: Options) -> Fallible<()> {
     // TODO
     Ok(())
 }
