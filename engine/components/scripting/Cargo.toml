@@ -3,5 +3,7 @@ name = "scripting"
 version = "0.1.0"
 authors = ["Nathan Ringo <remexre@gmail.com>"]
 
-[dependencies]
-inkwell = { git = "https://github.com/TheDan64/inkwell", branch = "llvm6-0" }
+[dependencies.inkwell]
+branch = "llvm6-0"
+git = "https://github.com/TheDan64/inkwell"
+version = "0.1.0"

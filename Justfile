@@ -24,6 +24,10 @@ run-release +ARGS="":
 test:
 	cargo test --all
 
+# Inkwell is a bit weird with how it does versioning, which results in breakage often...
+fix-inkwell:
+	cargo update -p inkwell
+
 open-docs:
 	cargo doc --open -p engine
 outdated-deps:
