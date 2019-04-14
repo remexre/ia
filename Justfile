@@ -1,8 +1,8 @@
-all: check build-debug doc test
+all: check build-debug doc test clippy
 clean:
 	cargo clean
 watch TARGET="all":
-	watchexec -cre frag,rs,toml,vert "just {{TARGET}}"
+	watchexec -cre frag,lalrpop,rs,toml,vert "just {{TARGET}}"
 
 build: build-debug build-release
 build-debug:
@@ -16,11 +16,15 @@ clippy:
 doc:
 	cargo doc --all
 test:
-	RUST_BACKTRACE=full cargo test --all -- --nocapture
-	RUST_BACKTRACE=full cargo test --all --release -- --nocapture
+	cargo test --all
+	cargo test --all --release
 
 outdated-deps:
 	cargo outdated -R
 
-run +ARGS="":
-	cargo run -- {{ARGS}}
+debug-tool +ARGS="":
+	cargo run --bin ia-internal-debug-tool -- {{ARGS}}
+
+fuzz-iqm:
+	cd components/iqm; cargo +nightly fuzz run fuzz_target_1 fuzz/corpus/fuzz_target_1 \
+		$(find ../.. -type f -name '*.iqm' | sed -r 's#/[^/]+$##' | sort | uniq)

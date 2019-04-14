@@ -1,0 +1,3 @@
+[submodule "assets/actors"]
+	path = assets/actors
+	url = https://github.com/red-eclipse/actors.git

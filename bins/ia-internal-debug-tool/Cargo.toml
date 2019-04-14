@@ -1,0 +1,10 @@
+[package]
+name = "ia-internal-debug-tool"
+version = "0.1.0"
+authors = ["Nathan Ringo <remexre@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+iqm = { path = "../../components/iqm" }
+stderrlog = "0.4.1"
+structopt = "0.2.15"

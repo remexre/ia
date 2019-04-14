@@ -1,0 +1,22 @@
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[package]
+authors = ["Automatically generated"]
+edition = "2018"
+name = "iqm-fuzz"
+publish = false
+version = "0.0.1"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+byteorder = "1.3.1"
+iqm = { path = ".." }
+libfuzzer-sys = { git = "https://github.com/rust-fuzz/libfuzzer-sys.git" }
+
+[[bin]]
+name = "fuzz_target_1"
+path = "fuzz_targets/fuzz_target_1.rs"
