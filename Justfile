@@ -41,5 +41,6 @@ debug-tool +ARGS="":
 
 # Fuzzes the IQM parser.
 fuzz-iqm:
+	mkdir -p components/iqm/fuzz/corpus/fuzz_target_1
 	cd components/iqm; cargo +nightly fuzz run fuzz_target_1 fuzz/corpus/fuzz_target_1 \
 		$(find ../.. -type f -name '*.iqm' | sed -r 's#/[^/]+$##' | sort | uniq)
