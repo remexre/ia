@@ -64,8 +64,7 @@ impl ComponentStore {
 }
 
 /// A very unsafe vector whose elements are all `Option<T>`'s, where `T` is chosen with each `get`
-/// and `set` operation. `T` must be a `Component`, however, so we do at least know that it will at
-/// least be `'static`.
+/// and `set` operation.
 ///
 /// TODO: This needs to be audited.
 struct UnsafeDynOptionVec {
@@ -81,7 +80,7 @@ struct UnsafeDynOptionVec {
 
 impl UnsafeDynOptionVec {
     /// Creates a new, empty `UnsafeDynOptionVec`.
-    pub fn new<T: Component>() -> UnsafeDynOptionVec {
+    pub fn new<T: 'static>() -> UnsafeDynOptionVec {
         unsafe fn dtor<T>(ptr: *mut u8) {
             drop_in_place::<T>(ptr as *mut T)
         }
@@ -95,7 +94,7 @@ impl UnsafeDynOptionVec {
     }
 
     /// Grows the vector to (at least) the given size.
-    fn grow_to<T: Component>(&mut self, mut n: usize) {
+    fn grow_to<T: 'static>(&mut self, mut n: usize) {
         if n < self.len {
             return;
         }
@@ -175,7 +174,7 @@ impl UnsafeDynOptionVec {
     #[safety(eq(self.layout, Layout::new::<Option<T>>()),
         "T must have the same layout as the type that was given to `UnsafeDynOptionVec::new`")]
     #[safety("T must be the same type as was given to `UnsafeDynOptionVec::new`")]
-    pub unsafe fn get<T: Component>(&self, n: usize) -> Option<&T> {
+    pub unsafe fn get<T: 'static>(&self, n: usize) -> Option<&T> {
         if n > self.len {
             return None;
         }
@@ -187,7 +186,7 @@ impl UnsafeDynOptionVec {
     #[safety(eq(self.layout, Layout::new::<Option<T>>()),
         "T must have the same layout as the type that was given to `UnsafeDynOptionVec::new`")]
     #[safety("T must be the same type as was given to `UnsafeDynOptionVec::new`")]
-    pub unsafe fn set<T: Component>(&mut self, n: usize, component: T) {
+    pub unsafe fn set<T: 'static>(&mut self, n: usize, component: T) {
         self.grow_to::<T>(
             n.checked_add(1)
                 .expect("overflow of size of component store"),
@@ -202,7 +201,7 @@ impl UnsafeDynOptionVec {
     #[safety(eq(self.layout, Layout::new::<Option<T>>()),
         "T must have the same layout as the type that was given to `UnsafeDynOptionVec::new`")]
     #[safety("T must be the same type as was given to `UnsafeDynOptionVec::new`")]
-    pub unsafe fn remove<T: Component>(&mut self, n: usize) {
+    pub unsafe fn remove<T: 'static>(&mut self, n: usize) {
         if n >= self.len {
             return;
         }
