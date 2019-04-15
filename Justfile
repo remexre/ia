@@ -40,7 +40,7 @@ test-miri:
 	done
 # Runs tests of a single crate under miri.
 test-miri-one DIR:
-	cd {{DIR}}; cargo +nightly miri test -- -Zmiri-seed=12345678
+	cd {{DIR}}; cargo +nightly miri test -- -Zmiri-seed=12345678 -- -Zunstable-options --exclude-should-panic
 
 # Checks for outdated dependencies.
 outdated-deps:

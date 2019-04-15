@@ -34,10 +34,12 @@
 #[macro_use]
 extern crate pretty_assertions;
 
-mod component_store;
-pub mod components;
 #[cfg(test)]
 mod tests;
+
+mod component_store;
+pub mod components;
+mod unsafe_option_vec;
 
 pub use crate::component_store::ComponentStore;
 use std::fmt::Debug;
