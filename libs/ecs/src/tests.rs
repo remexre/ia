@@ -3,7 +3,6 @@ use crate::{
     Component, ComponentStore,
 };
 use cgmath::Point3;
-use lazy_static::lazy_static;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 #[test]
@@ -43,9 +42,7 @@ fn simple() {
 
 #[test]
 fn dropping() {
-    lazy_static! {
-        static ref N: AtomicUsize = AtomicUsize::new(0);
-    }
+    static N: AtomicUsize = AtomicUsize::new(0);
 
     #[derive(Debug)]
     struct C;
@@ -85,10 +82,9 @@ fn dropping() {
 #[test]
 #[should_panic(expected = "boom")]
 fn no_double_drop() {
-    lazy_static! {
-        static ref SHOULD_PANIC: AtomicBool = AtomicBool::new(false);
-    }
-    #[derive(Debug)]
+    static FIRST_PANIC: AtomicBool = AtomicBool::new(true);
+
+    #[derive(Debug, Default)]
     struct P(bool);
     impl Component for P {}
     impl Drop for P {
@@ -97,8 +93,8 @@ fn no_double_drop() {
                 panic!("double-dropping!");
             }
             self.0 = true;
-            if SHOULD_PANIC.load(Ordering::SeqCst) {
-                SHOULD_PANIC.store(false, Ordering::SeqCst);
+
+            if FIRST_PANIC.swap(false, Ordering::SeqCst) {
                 panic!("boom");
             }
         }
@@ -106,8 +102,6 @@ fn no_double_drop() {
 
     let mut store = ComponentStore::new();
     let foo = store.new_entity();
-    store.set_component(foo, P(false));
-
-    SHOULD_PANIC.store(true, Ordering::SeqCst);
-    store.set_component(foo, P(false));
+    store.set_component(foo, P::default());
+    store.set_component(foo, P::default());
 }

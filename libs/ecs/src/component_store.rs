@@ -180,7 +180,8 @@ impl UnsafeOptionVec {
         if n > self.len {
             return None;
         }
-        self.ptr(n).cast::<Option<T>>().as_ref().as_ref()
+        let ptr = self.ptr(n).cast::<Option<T>>().as_ptr();
+        (&*ptr).as_ref()
     }
 
     /// Sets the `n`th value from the `UnsafeOptionVec` to `Some` value. This will extend the
