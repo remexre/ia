@@ -120,11 +120,24 @@ impl UnsafeOptionVec {
         "T must have the same layout as the type that was given to `UnsafeOptionVec::new`")]
     #[safety("T must be the same type as was given to `UnsafeOptionVec::new`")]
     pub unsafe fn get<T: 'static + Send + Sync>(&self, n: usize) -> Option<&T> {
-        if n > self.len {
+        if n >= self.len {
             return None;
         }
         let ptr = self.ptr(n).cast::<Option<T>>().as_ptr();
         (&*ptr).as_ref()
+    }
+
+    /// Reads the `n`th value from the `UnsafeOptionVec`. This will return `None` if the given
+    /// index is out of bounds.
+    #[safety(eq(self.layout, Layout::new::<Option<T>>()),
+        "T must have the same layout as the type that was given to `UnsafeOptionVec::new`")]
+    #[safety("T must be the same type as was given to `UnsafeOptionVec::new`")]
+    pub unsafe fn get_mut<T: 'static + Send + Sync>(&mut self, n: usize) -> Option<&mut T> {
+        if n >= self.len {
+            return None;
+        }
+        let ptr = self.ptr(n).cast::<Option<T>>().as_ptr();
+        (&mut *ptr).as_mut()
     }
 
     /// Sets the `n`th value from the `UnsafeOptionVec` to `Some` value. This will extend the

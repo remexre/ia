@@ -4,14 +4,14 @@ use crate::Component;
 use cgmath::Point3;
 use derive_more::{Display, From, Into};
 
-/// A debug flag.
-#[derive(Debug)]
+/// A dataless debug flag.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct DebugFlag;
 
 impl Component for DebugFlag {}
 
 /// The name of the entity.
-#[derive(Debug, Display, From, Into)]
+#[derive(Clone, Debug, Display, Eq, From, Hash, Into, Ord, PartialEq, PartialOrd)]
 pub struct Name(pub String);
 
 impl Component for Name {}

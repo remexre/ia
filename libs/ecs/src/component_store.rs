@@ -39,6 +39,13 @@ impl ComponentStore {
             .and_then(|vec| unsafe { vec.get::<T>(entity.0) })
     }
 
+    /// Gets a component for a given entity.
+    pub fn get_mut_component<T: Component>(&mut self, entity: Entity) -> Option<&mut T> {
+        self.components
+            .get_mut(&TypeId::of::<T>())
+            .and_then(|vec| unsafe { vec.get_mut::<T>(entity.0) })
+    }
+
     /// Sets a component for a given entity.
     pub fn set_component<T: Component>(&mut self, entity: Entity, component: T) {
         unsafe {
