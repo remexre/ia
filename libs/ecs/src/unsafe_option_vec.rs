@@ -22,7 +22,7 @@ pub struct UnsafeOptionVec {
 
 impl UnsafeOptionVec {
     /// Creates a new, empty `UnsafeOptionVec`.
-    pub fn new<T: 'static>() -> UnsafeOptionVec {
+    pub fn new<T: 'static + Send + Sync>() -> UnsafeOptionVec {
         unsafe fn dtor<T>(ptr: NonNull<u8>) {
             drop_in_place::<T>(ptr.cast().as_ptr())
         }
@@ -36,7 +36,7 @@ impl UnsafeOptionVec {
     }
 
     /// Grows the vector to (at least) the given size.
-    fn grow_to<T: 'static>(&mut self, mut n: usize) {
+    fn grow_to<T: 'static + Send + Sync>(&mut self, mut n: usize) {
         let old_len = self.len;
         if n < old_len {
             return;
@@ -119,7 +119,7 @@ impl UnsafeOptionVec {
     #[safety(eq(self.layout, Layout::new::<Option<T>>()),
         "T must have the same layout as the type that was given to `UnsafeOptionVec::new`")]
     #[safety("T must be the same type as was given to `UnsafeOptionVec::new`")]
-    pub unsafe fn get<T: 'static>(&self, n: usize) -> Option<&T> {
+    pub unsafe fn get<T: 'static + Send + Sync>(&self, n: usize) -> Option<&T> {
         if n > self.len {
             return None;
         }
@@ -132,7 +132,7 @@ impl UnsafeOptionVec {
     #[safety(eq(self.layout, Layout::new::<Option<T>>()),
         "T must have the same layout as the type that was given to `UnsafeOptionVec::new`")]
     #[safety("T must be the same type as was given to `UnsafeOptionVec::new`")]
-    pub unsafe fn set<T: 'static>(&mut self, n: usize, value: Option<T>) {
+    pub unsafe fn set<T: 'static + Send + Sync>(&mut self, n: usize, value: Option<T>) {
         self.grow_to::<T>(
             n.checked_add(1)
                 .expect("overflow of size of component store"),
@@ -161,3 +161,6 @@ impl Drop for UnsafeOptionVec {
         }
     }
 }
+
+unsafe impl Send for UnsafeOptionVec {}
+unsafe impl Sync for UnsafeOptionVec {}

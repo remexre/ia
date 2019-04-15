@@ -17,6 +17,11 @@ impl ComponentStore {
         }
     }
 
+    /// Returns an iterator over all entities.
+    pub fn iter_entities(&self) -> impl Clone + Iterator<Item = Entity> {
+        (0..self.next_entity).map(Entity)
+    }
+
     /// Creates a new entity.
     pub fn new_entity(&mut self) -> Entity {
         let n = self.next_entity;

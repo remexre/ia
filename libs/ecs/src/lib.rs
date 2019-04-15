@@ -49,4 +49,65 @@ use std::fmt::Debug;
 pub struct Entity(usize);
 
 /// A component. Components are data which can be attached to entities via a `ComponentStore`.
-pub trait Component: 'static + Debug {}
+pub trait Component: 'static + Debug + Send + Sync {}
+
+/// Runs the given system on all entities that have all the relevant components.
+///
+/// An unary function will be called for every entity:
+///
+/// ```rust
+/// # use ecs::{components::DebugFlag, run_system, ComponentStore};
+/// let mut store = ComponentStore::new();
+/// store.new_entity();
+/// store.new_entity();
+/// store.new_entity();
+///
+/// let mut n = 0;
+/// run_system!(store, |_entity| {
+///     n += 1;
+/// });
+/// assert_eq!(n, 3);
+/// ```
+///
+/// An `n`-ary function (where `n` > 2) will be called for every entity that has all of the
+/// specified components.
+///
+/// ```rust
+/// # use ecs::{components::{DebugFlag, Name}, run_system, ComponentStore};
+/// # use std::fmt::Write;
+/// let mut store = ComponentStore::new();
+///
+/// let foo = store.new_entity();
+/// let bar = store.new_entity();
+/// let baz = store.new_entity();
+///
+/// store.set_component(foo, Name("foo".to_string()));
+/// store.set_component(bar, Name("bar".to_string()));
+/// store.set_component(baz, Name("baz".to_string()));
+///
+/// store.set_component(foo, DebugFlag);
+/// store.set_component(baz, DebugFlag);
+///
+/// let mut log = String::new();
+/// run_system!(store, |entity, _: DebugFlag, name: Name| {
+///     writeln!(log, "{:?} {:?}", entity, name);
+/// });
+/// assert_eq!(
+///     log,
+///     concat![
+///         "Entity(0) Name(\"foo\")\n",
+///         "Entity(2) Name(\"baz\")\n",
+///     ],
+/// );
+/// ```
+#[macro_export]
+macro_rules! run_system {
+    ($store:expr, |$entity:ident $(, $arg:tt : $argty:ty)*| $body:block) => {{
+        let store = $store;
+        for $entity in store.iter_entities() {
+            if let ($(Some($arg),)*) = ($(store.get_component::<$argty>($entity),)*) {
+                $body
+            }
+        }
+    }};
+}

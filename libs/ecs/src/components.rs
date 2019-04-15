@@ -4,6 +4,12 @@ use crate::Component;
 use cgmath::Point3;
 use derive_more::{Display, From, Into};
 
+/// A debug flag.
+#[derive(Debug)]
+pub struct DebugFlag;
+
+impl Component for DebugFlag {}
+
 /// The name of the entity.
 #[derive(Debug, Display, From, Into)]
 pub struct Name(pub String);
