@@ -1,0 +1,11 @@
+[package]
+authors = ["Nathan Ringo <remexre@protonmail.com>"]
+description = "A Vulkan-based renderer."
+license = "Apache-2.0/MIT"
+edition = "2018"
+name = "renderer"
+version = "0.1.0"
+
+[dependencies]
+ecs = { path = "../ecs" }
+vulkano = "0.11.1"

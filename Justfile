@@ -30,6 +30,17 @@ doc:
 test:
 	cargo test --all
 	cargo test --all --release
+# Runs tests of all crates that use unsafe under miri.
+test-miri:
+	#!/bin/bash
+	for dir in {bins,libs}/*; do
+		if grep -R unsafe $dir/src >/dev/null; then
+			just test-miri-one $dir
+		fi
+	done
+# Runs tests of a single crate under miri.
+test-miri-one DIR:
+	cd {{DIR}}; cargo +nightly miri test -- -Zmiri-seed=12345678
 
 # Checks for outdated dependencies.
 outdated-deps:
@@ -41,6 +52,6 @@ debug-tool +ARGS="":
 
 # Fuzzes the IQM parser.
 fuzz-iqm:
-	mkdir -p components/iqm/fuzz/corpus/fuzz_target_1
-	cd components/iqm; cargo +nightly fuzz run fuzz_target_1 fuzz/corpus/fuzz_target_1 \
+	mkdir -p libs/iqm/fuzz/corpus/fuzz_target_1
+	cd libs/iqm; cargo +nightly fuzz run fuzz_target_1 fuzz/corpus/fuzz_target_1 \
 		$(find ../.. -type f -name '*.iqm' | sed -r 's#/[^/]+$##' | sort | uniq)
