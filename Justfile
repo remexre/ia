@@ -49,6 +49,9 @@ outdated-deps:
 # Runs the debug tool.
 debug-tool +ARGS="":
 	cargo run --bin ia-internal-debug-tool -- {{ARGS}}
+# Runs the game itself.
+run +ARGS="":
+	cargo run --bin ia -- {{ARGS}}
 
 # Fuzzes the IQM parser.
 fuzz-iqm:

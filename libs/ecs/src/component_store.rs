@@ -5,14 +5,13 @@ use std::{
     any::TypeId,
     collections::HashMap,
     fmt::{Debug, Formatter, Result as FmtResult},
-    mem::transmute,
-    ptr::{drop_in_place, write},
+    ptr::{drop_in_place, write, NonNull},
 };
 
 /// A container for components.
 #[derive(Debug)]
 pub struct ComponentStore {
-    components: HashMap<TypeId, UnsafeDynOptionVec>,
+    components: HashMap<TypeId, UnsafeOptionVec>,
     next_entity: usize,
 }
 
@@ -47,8 +46,8 @@ impl ComponentStore {
         unsafe {
             self.components
                 .entry(TypeId::of::<T>())
-                .or_insert_with(UnsafeDynOptionVec::new::<T>)
-                .set(entity.0, component)
+                .or_insert_with(UnsafeOptionVec::new::<T>)
+                .set(entity.0, Some(component))
         }
     }
 
@@ -57,8 +56,8 @@ impl ComponentStore {
         unsafe {
             self.components
                 .entry(TypeId::of::<T>())
-                .or_insert_with(UnsafeDynOptionVec::new::<T>)
-                .remove::<T>(entity.0)
+                .or_insert_with(UnsafeOptionVec::new::<T>)
+                .set::<T>(entity.0, None)
         }
     }
 }
@@ -67,26 +66,26 @@ impl ComponentStore {
 /// and `set` operation.
 ///
 /// TODO: This needs to be audited.
-struct UnsafeDynOptionVec {
+struct UnsafeOptionVec {
     /// If `len != 0`, the address at which the allocated `Option<T>`'s start.
-    ptr: *mut u8,
+    ptr: NonNull<u8>,
     /// The number of allocated `Option<T>`'s.
     len: usize,
     /// The layout of each `Option<T>`.
     layout: Layout,
     /// The destructor for `Option<T>`.
-    dtor: unsafe fn(*mut u8),
+    dtor: unsafe fn(NonNull<u8>),
 }
 
-impl UnsafeDynOptionVec {
-    /// Creates a new, empty `UnsafeDynOptionVec`.
-    pub fn new<T: 'static>() -> UnsafeDynOptionVec {
-        unsafe fn dtor<T>(ptr: *mut u8) {
-            drop_in_place::<T>(ptr as *mut T)
+impl UnsafeOptionVec {
+    /// Creates a new, empty `UnsafeOptionVec`.
+    pub fn new<T: 'static>() -> UnsafeOptionVec {
+        unsafe fn dtor<T>(ptr: NonNull<u8>) {
+            drop_in_place::<T>(ptr.cast().as_ptr())
         }
 
-        UnsafeDynOptionVec {
-            ptr: 1 as _,
+        UnsafeOptionVec {
+            ptr: NonNull::dangling(),
             len: 0,
             layout: Layout::new::<Option<T>>(),
             dtor: dtor::<Option<T>>,
@@ -95,7 +94,8 @@ impl UnsafeDynOptionVec {
 
     /// Grows the vector to (at least) the given size.
     fn grow_to<T: 'static>(&mut self, mut n: usize) {
-        if n < self.len {
+        let old_len = self.len;
+        if n < old_len {
             return;
         }
 
@@ -104,25 +104,27 @@ impl UnsafeDynOptionVec {
         }
 
         let new_layout = self.layout_with_len(n);
-        let ptr = if self.len == 0 {
+        let ptr = if old_len == 0 {
             unsafe { alloc(new_layout) }
         } else {
-            unsafe { realloc(self.ptr, self.layout(), new_layout.size()) }
+            unsafe { realloc(self.ptr.as_ptr(), self.layout(), new_layout.size()) }
         };
 
-        if ptr.is_null() {
-            // `self` is safe to drop. Either `alloc` failed, and `self.len` is therefore `0`, so
-            // no `dealloc` will occur, or `realloc` failed, and `self.ptr` is still
-            // `dealloc`atable.
-            panic!("allocation failure in component store")
+        match NonNull::new(ptr) {
+            Some(ptr) => {
+                self.ptr = ptr;
+                self.len = n;
+            }
+            None => {
+                // `self` is safe to drop. Either `alloc` failed, and `self.len` is therefore `0`,
+                // so no `dealloc` will occur, or `realloc` failed, and `self.ptr` is still
+                // `dealloc`atable.
+                panic!("allocation failure in component store")
+            }
         }
 
-        let old_len = self.len;
-        self.ptr = ptr;
-        self.len = n;
-
         for i in old_len..n {
-            unsafe { write(self.ptr(i) as *mut Option<T>, None) };
+            unsafe { write(self.ptr(i).cast::<Option<T>>().as_ptr(), None) };
         }
     }
 
@@ -143,7 +145,7 @@ impl UnsafeDynOptionVec {
         // self.layout
         //     .repeat(n)
         //     .map(|(l, _)| l)
-        //     .expect("overflow in size of component store")
+        //     .expect("overflow of size of component store")
         // ```
         //
         // once that method is stable.
@@ -164,66 +166,54 @@ impl UnsafeDynOptionVec {
 
     /// Returns a pointer to the `n`th item of the vector.
     #[safety(assert(n < self.len), "`n` must be less than the allocated length of the vector")]
-    unsafe fn ptr(&self, n: usize) -> *mut u8 {
+    unsafe fn ptr(&self, n: usize) -> NonNull<u8> {
         let size = self.layout_with_len(n).size();
-        self.ptr.add(size)
+        NonNull::new_unchecked(self.ptr.as_ptr().add(size))
     }
 
-    /// Reads the `n`th value from the `UnsafeDynOptionVec`. This will return `None` if the given
+    /// Reads the `n`th value from the `UnsafeOptionVec`. This will return `None` if the given
     /// index is out of bounds.
     #[safety(eq(self.layout, Layout::new::<Option<T>>()),
-        "T must have the same layout as the type that was given to `UnsafeDynOptionVec::new`")]
-    #[safety("T must be the same type as was given to `UnsafeDynOptionVec::new`")]
+        "T must have the same layout as the type that was given to `UnsafeOptionVec::new`")]
+    #[safety("T must be the same type as was given to `UnsafeOptionVec::new`")]
     pub unsafe fn get<T: 'static>(&self, n: usize) -> Option<&T> {
         if n > self.len {
             return None;
         }
-        transmute::<*const Option<T>, &Option<T>>(self.ptr(n) as _).as_ref()
+        self.ptr(n).cast::<Option<T>>().as_ref().as_ref()
     }
 
-    /// Sets the `n`th value from the `UnsafeDynOptionVec` to `Some` value. This will extend the
+    /// Sets the `n`th value from the `UnsafeOptionVec` to `Some` value. This will extend the
     /// underlying allocation if `n` is out of bounds.
     #[safety(eq(self.layout, Layout::new::<Option<T>>()),
-        "T must have the same layout as the type that was given to `UnsafeDynOptionVec::new`")]
-    #[safety("T must be the same type as was given to `UnsafeDynOptionVec::new`")]
-    pub unsafe fn set<T: 'static>(&mut self, n: usize, component: T) {
+        "T must have the same layout as the type that was given to `UnsafeOptionVec::new`")]
+    #[safety("T must be the same type as was given to `UnsafeOptionVec::new`")]
+    pub unsafe fn set<T: 'static>(&mut self, n: usize, value: Option<T>) {
         self.grow_to::<T>(
             n.checked_add(1)
                 .expect("overflow of size of component store"),
         );
-        let ptr = self.ptr(n);
-        (self.dtor)(ptr);
-        write(ptr as *mut Option<T>, Some(component))
-    }
-
-    /// Removes the `n`th value from the `UnsafeDynOptionVec`. This is a no-op if `n` is out of
-    /// bounds.
-    #[safety(eq(self.layout, Layout::new::<Option<T>>()),
-        "T must have the same layout as the type that was given to `UnsafeDynOptionVec::new`")]
-    #[safety("T must be the same type as was given to `UnsafeDynOptionVec::new`")]
-    pub unsafe fn remove<T: 'static>(&mut self, n: usize) {
-        if n >= self.len {
-            return;
-        }
-        let ptr = self.ptr(n);
-        (self.dtor)(ptr);
-        write(ptr as *mut Option<T>, None)
+        *self.ptr(n).cast().as_mut() = value;
     }
 }
 
-impl Debug for UnsafeDynOptionVec {
+impl Debug for UnsafeOptionVec {
     fn fmt(&self, fmt: &mut Formatter) -> FmtResult {
-        fmt.debug_struct("UnsafeDynOptionVec").finish()
+        fmt.debug_struct("UnsafeOptionVec")
+            .field("len", &self.len)
+            .finish()
     }
 }
 
-impl Drop for UnsafeDynOptionVec {
+impl Drop for UnsafeOptionVec {
     fn drop(&mut self) {
         if self.len != 0 {
-            for i in 0..self.len {
-                unsafe { (self.dtor)(self.ptr(i)) }
+            unsafe {
+                for i in 0..self.len {
+                    (self.dtor)(self.ptr(i))
+                }
+                dealloc(self.ptr.as_ptr(), self.layout())
             }
-            unsafe { dealloc(self.ptr, self.layout()) }
         }
     }
 }

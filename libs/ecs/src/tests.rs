@@ -4,7 +4,7 @@ use crate::{
 };
 use cgmath::Point3;
 use lazy_static::lazy_static;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 #[test]
 fn create() {
@@ -80,4 +80,34 @@ fn dropping() {
 
     drop(store);
     assert_eq!(N.load(Ordering::SeqCst), 0);
+}
+
+#[test]
+#[should_panic(expected = "boom")]
+fn no_double_drop() {
+    lazy_static! {
+        static ref SHOULD_PANIC: AtomicBool = AtomicBool::new(false);
+    }
+    #[derive(Debug)]
+    struct P(bool);
+    impl Component for P {}
+    impl Drop for P {
+        fn drop(&mut self) {
+            if dbg!(self.0) {
+                panic!("double-dropping!");
+            }
+            self.0 = true;
+            if SHOULD_PANIC.load(Ordering::SeqCst) {
+                SHOULD_PANIC.store(false, Ordering::SeqCst);
+                panic!("boom");
+            }
+        }
+    }
+
+    let mut store = ComponentStore::new();
+    let foo = store.new_entity();
+    store.set_component(foo, P(false));
+
+    SHOULD_PANIC.store(true, Ordering::SeqCst);
+    store.set_component(foo, P(false));
 }
