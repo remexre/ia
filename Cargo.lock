@@ -25,6 +25,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "assets"
+version = "0.1.0"
+dependencies = [
+ "ecs 0.1.0",
+]
+
+[[package]]
 name = "atty"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -225,6 +232,16 @@ version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "unicode-segmentation 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "ia"
+version = "0.1.0"
+dependencies = [
+ "ecs 0.1.0",
+ "renderer 0.1.0",
+ "stderrlog 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "structopt 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -500,6 +517,7 @@ dependencies = [
 name = "renderer"
 version = "0.1.0"
 dependencies = [
+ "assets 0.1.0",
  "ecs 0.1.0",
  "vulkano 0.11.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]

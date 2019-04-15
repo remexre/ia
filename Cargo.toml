@@ -1,6 +1,8 @@
 [workspace]
 members = [
+	"bins/ia",
 	"bins/ia-internal-debug-tool",
+	"libs/assets",
 	"libs/ecs",
 	"libs/iqm",
 	"libs/renderer"

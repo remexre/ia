@@ -1,0 +1,11 @@
+[package]
+name = "ia"
+version = "0.1.0"
+authors = ["Nathan Ringo <remexre@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+ecs = { path = "../../libs/ecs" }
+renderer = { path = "../../libs/renderer" }
+stderrlog = "0.4.1"
+structopt = "0.2.15"

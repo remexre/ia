@@ -1,4 +1,6 @@
-//! A Vulkan-based renderer.
+//! An asset manager.
+//!
+//! This provides components for various assets, and a central value for loading them.
 #![deny(
     bad_style,
     const_err,
@@ -30,8 +32,16 @@
     while_true
 )]
 
-mod initialize;
+use ecs::Component;
+use std::fmt::{Debug, Formatter, Result as FmtResult};
 
-/// The main renderer value.
-#[derive(Debug)]
-pub struct Renderer {}
+/// A model.
+pub struct Model {}
+
+impl Component for Model {}
+
+impl Debug for Model {
+    fn fmt(&self, fmt: &mut Formatter) -> FmtResult {
+        fmt.debug_struct("Model").field("len", &()).finish()
+    }
+}

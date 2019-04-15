@@ -1,12 +1,10 @@
 [package]
 authors = ["Nathan Ringo <remexre@protonmail.com>"]
-description = "A Vulkan-based renderer."
+description = "An asset manager."
 license = "Apache-2.0/MIT"
 edition = "2018"
-name = "renderer"
+name = "assets"
 version = "0.1.0"
 
 [dependencies]
-assets = { path = "../assets" }
 ecs = { path = "../ecs" }
-vulkano = "0.11.1"
