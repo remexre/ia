@@ -5,5 +5,5 @@ members = [
 	"libs/assets",
 	"libs/ecs",
 	"libs/iqm",
-	"libs/renderer"
+	"libs/renderer",
 ]

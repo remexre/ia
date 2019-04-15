@@ -7,7 +7,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let options = Options::from_args();
     stderrlog::new()
         .quiet(options.quiet)
-        .verbosity(options.verbose)
+        .verbosity(options.verbose + 1)
         .init()?;
 
     let mut renderer = Renderer::new()?;

@@ -32,6 +32,16 @@
 
 mod initialize;
 
+use std::sync::Arc;
+use vulkano::{
+    device::{Device, Queue},
+    instance::Instance,
+};
+
 /// The main renderer value.
 #[derive(Debug)]
-pub struct Renderer {}
+pub struct Renderer {
+    dev: Arc<Device>,
+    instance: Arc<Instance>,
+    queue: Arc<Queue>,
+}
