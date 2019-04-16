@@ -4,13 +4,15 @@ use log::info;
 use std::error::Error;
 use vulkano::{
     device::{Device, DeviceExtensions, Features},
-    instance::{Instance, InstanceExtensions, PhysicalDevice, PhysicalDeviceType},
+    instance::{Instance, PhysicalDevice, PhysicalDeviceType},
 };
+use vulkano_win::VkSurfaceBuild;
+use winit::{EventsLoop, WindowBuilder};
 
 impl Renderer {
     /// Creates a new `Renderer`.
     pub fn new() -> Result<Renderer, Box<dyn Error>> {
-        let instance = Instance::new(None, &InstanceExtensions::none(), None)?;
+        let instance = Instance::new(None, &vulkano_win::required_extensions(), None)?;
 
         let mut pds = PhysicalDevice::enumerate(&instance)
             .map(|pd| {
@@ -76,10 +78,17 @@ impl Renderer {
         let queue = queues.remove(0);
         drop(queues);
 
+        let event_loop = EventsLoop::new();
+        let surface = WindowBuilder::new()
+            .with_title("ia")
+            .build_vk_surface(&event_loop, instance.clone())?;
+
         Ok(Renderer {
             dev,
+            event_loop,
             instance,
             queue,
+            surface,
         })
     }
 }

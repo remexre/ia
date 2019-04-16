@@ -36,12 +36,23 @@ use std::sync::Arc;
 use vulkano::{
     device::{Device, Queue},
     instance::Instance,
+    swapchain::Surface,
 };
+use winit::{Event, EventsLoop, Window};
 
 /// The main renderer value.
 #[derive(Debug)]
 pub struct Renderer {
     dev: Arc<Device>,
+    event_loop: EventsLoop,
     instance: Arc<Instance>,
     queue: Arc<Queue>,
+    surface: Arc<Surface<Window>>,
+}
+
+impl Renderer {
+    /// Runs the provided closure for each event.
+    pub fn poll_events<F: FnMut(Event)>(&mut self, cb: F) {
+        self.event_loop.poll_events(cb)
+    }
 }

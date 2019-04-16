@@ -1,7 +1,9 @@
 use ecs::ComponentStore;
+use log::info;
 use renderer::Renderer;
 use std::error::Error;
 use structopt::StructOpt;
+use winit::{Event, WindowEvent};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let options = Options::from_args();
@@ -15,7 +17,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut cs = ComponentStore::new();
     let mut keep_running = true;
     while keep_running {
-        unimplemented!()
+        renderer.poll_events(|ev| match ev {
+            Event::WindowEvent {
+                event: WindowEvent::CloseRequested,
+                ..
+            } => keep_running = false,
+            _ => info!("TODO: Handle event {:?}", ev),
+        });
     }
 
     Ok(())

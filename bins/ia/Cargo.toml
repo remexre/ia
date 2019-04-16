@@ -6,6 +6,8 @@ edition = "2018"
 
 [dependencies]
 ecs = { path = "../../libs/ecs" }
+log = "0.4.6"
 renderer = { path = "../../libs/renderer" }
 stderrlog = "0.4.1"
 structopt = "0.2.15"
+winit = "0.18.0"
