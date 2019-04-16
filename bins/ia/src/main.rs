@@ -1,11 +1,11 @@
 use ecs::ComponentStore;
+use libremexre::errors::Result;
 use log::info;
 use renderer::Renderer;
-use std::error::Error;
 use structopt::StructOpt;
 use winit::{Event, WindowEvent};
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     let options = Options::from_args();
     stderrlog::new()
         .quiet(options.quiet)

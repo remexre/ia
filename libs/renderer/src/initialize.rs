@@ -1,17 +1,20 @@
 use crate::Renderer;
-use libremexre::err;
+use libremexre::{err, errors::Result};
 use log::info;
-use std::error::Error;
+use std::sync::Arc;
 use vulkano::{
-    device::{Device, DeviceExtensions, Features},
+    device::{Device, DeviceExtensions, Features, Queue},
+    image::SwapchainImage,
     instance::{Instance, PhysicalDevice, PhysicalDeviceType},
+    swapchain::{PresentMode, Surface, SurfaceTransform, Swapchain},
+    sync::now,
 };
 use vulkano_win::VkSurfaceBuild;
-use winit::{EventsLoop, WindowBuilder};
+use winit::{EventsLoop, Window, WindowBuilder};
 
 impl Renderer {
     /// Creates a new `Renderer`.
-    pub fn new() -> Result<Renderer, Box<dyn Error>> {
+    pub fn new() -> Result<Renderer> {
         let instance = Instance::new(None, &vulkano_win::required_extensions(), None)?;
 
         let mut pds = PhysicalDevice::enumerate(&instance)
@@ -64,12 +67,11 @@ impl Renderer {
         let qf = qfs.remove(0);
         drop(qfs);
 
-        let (dev, queues) = Device::new(
-            pd,
-            &Features::none(),
-            &DeviceExtensions::none(),
-            Some((qf, 0.5)),
-        )?;
+        let device_exts = DeviceExtensions {
+            khr_swapchain: true,
+            ..DeviceExtensions::none()
+        };
+        let (device, queues) = Device::new(pd, &Features::none(), &device_exts, Some((qf, 0.5)))?;
 
         let mut queues = queues.into_iter().collect::<Vec<_>>();
         if queues.is_empty() {
@@ -83,12 +85,64 @@ impl Renderer {
             .with_title("ia")
             .build_vk_surface(&event_loop, instance.clone())?;
 
+        let (swapchain, images) = make_swapchain(surface.clone(), device.clone(), &queue)?;
+
+        let cleanup_future = now(device.clone());
+
         Ok(Renderer {
-            dev,
+            device,
             event_loop,
+            images,
             instance,
             queue,
             surface,
+            swapchain,
+
+            cleanup_future: Some(Box::new(cleanup_future)),
         })
     }
+
+    /// Recreates the swapchain, to account for e.g. a new window size.
+    pub(crate) fn recreate_swapchain(&mut self) -> Result<()> {
+        let (swapchain, images) =
+            make_swapchain(self.surface.clone(), self.device.clone(), &self.queue)?;
+        self.swapchain = swapchain;
+        self.images = images;
+        Ok(())
+    }
+}
+
+/// Creates the swapchain. Defined here to share code between `Renderer::new` and
+/// `Renderer::recreate_swapchain`.
+fn make_swapchain(
+    surface: Arc<Surface<Window>>,
+    device: Arc<Device>,
+    queue: &Arc<Queue>,
+) -> Result<(Arc<Swapchain<Window>>, Vec<Arc<SwapchainImage<Window>>>)> {
+    let window = surface.window();
+    let caps = surface.capabilities(device.physical_device())?;
+    let dims = window
+        .get_inner_size()
+        .map(|dims| dims.to_physical(window.get_hidpi_factor()).into())
+        .map(|(w, h)| [w, h])
+        .or_else(|| caps.current_extent)
+        .ok_or_else(|| err!("window was closed"))?;
+    let alpha = caps.supported_composite_alpha.iter().next().unwrap();
+    let format = caps.supported_formats[0].0;
+    Swapchain::new(
+        device,
+        surface,
+        caps.min_image_count,
+        format,
+        dims,
+        1,
+        caps.supported_usage_flags,
+        queue,
+        SurfaceTransform::Identity,
+        alpha,
+        PresentMode::Fifo,
+        true,
+        None,
+    )
+    .map_err(From::from)
 }

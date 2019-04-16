@@ -8,8 +8,9 @@ version = "0.1.0"
 
 [dependencies]
 assets = { path = "../assets" }
+derivative = "1.0.2"
 ecs = { path = "../ecs" }
-libremexre = { default-features = false, version = "0.1.5" }
+libremexre = { default-features = false, version = "0.1.6" }
 log = "0.4.6"
 vulkano = "0.11.1"
 vulkano-win = "0.11.1"

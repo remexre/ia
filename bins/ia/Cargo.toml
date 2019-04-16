@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 ecs = { path = "../../libs/ecs" }
+libremexre = { default-features = false, version = "0.1.6" }
 log = "0.4.6"
 renderer = { path = "../../libs/renderer" }
 stderrlog = "0.4.1"

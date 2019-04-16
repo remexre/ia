@@ -30,29 +30,43 @@
     while_true
 )]
 
+mod draw;
 mod initialize;
 
+use derivative::Derivative;
 use std::sync::Arc;
 use vulkano::{
     device::{Device, Queue},
+    image::SwapchainImage,
     instance::Instance,
-    swapchain::Surface,
+    swapchain::{Surface, Swapchain},
+    sync::GpuFuture,
 };
 use winit::{Event, EventsLoop, Window};
 
 /// The main renderer value.
-#[derive(Debug)]
+#[derive(Derivative)]
+#[derivative(Debug)]
 pub struct Renderer {
-    dev: Arc<Device>,
+    device: Arc<Device>,
     event_loop: EventsLoop,
+    #[derivative(Debug = "ignore")]
+    images: Vec<Arc<SwapchainImage<Window>>>,
     instance: Arc<Instance>,
     queue: Arc<Queue>,
     surface: Arc<Surface<Window>>,
+    swapchain: Arc<Swapchain<Window>>,
+
+    #[derivative(Debug = "ignore")]
+    cleanup_future: Option<Box<dyn GpuFuture>>,
 }
 
 impl Renderer {
     /// Runs the provided closure for each event.
+    ///
+    /// This also performs cleanup actions.
     pub fn poll_events<F: FnMut(Event)>(&mut self, cb: F) {
+        self.cleanup_future.as_mut().unwrap().cleanup_finished();
         self.event_loop.poll_events(cb)
     }
 }
