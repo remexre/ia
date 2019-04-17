@@ -1,0 +1,14 @@
+[package]
+authors = ["Nathan Ringo <remexre@protonmail.com>"]
+description = "Proc macros for the ecs crate."
+license = "Apache-2.0/MIT"
+edition = "2018"
+name = "ecs_proc"
+version = "0.1.0"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "0.6.12"
+syn = "0.15.31"

@@ -7,8 +7,6 @@ use std::{
 
 /// A very unsafe vector whose elements are all `Option<T>`'s, where `T` is chosen with each `get`
 /// and `set` operation.
-///
-/// TODO: This needs to be audited.
 pub struct UnsafeOptionVec {
     /// If `len != 0`, the address at which the allocated `Option<T>`'s start.
     ptr: NonNull<u8>,

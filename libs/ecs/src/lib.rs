@@ -91,6 +91,7 @@ pub mod components;
 mod unsafe_option_vec;
 
 pub use crate::component_store::ComponentStore;
+pub use ecs_proc::system;
 use std::fmt::Debug;
 
 /// An entity.
@@ -238,12 +239,13 @@ macro_rules! run_system {
 
     (
         $store:expr,
-        |$entity:ident $(, $arg:tt : $argty:ty)*| $body:block,
+        |$entity:ident $($args:tt)*| $body:block,
         |$then_entity:ident, $val:tt, $then_store:tt| $then:block
     ) => {{
         let mut store = &mut $store;
         for entity in store.iter_entities() {
-            let val = if let ($(Some($arg),)*) = ($(store.get_component::<$argty>(entity),)*) {
+            let val = if let ($crate::run_system!(@internal @arg_pats $($rest)*)) =
+                    ($crate::run_system!(@internal @arg_exprs $($rest)*)) {
                 let $entity = entity;
                 Some($body)
             } else {
@@ -256,6 +258,20 @@ macro_rules! run_system {
             }
         }
     }};
+
+    (@internal @arg_pats , $name:ident : $ty:ty) => {
+        Some($name)
+    };
+    (@internal @arg_pats , $name:ident : $ty:ty , $($rest:tt)*) => {
+        Some($name), run_system!(@internal @arg_pats , $($rest)*)
+    };
+
+    (@internal @arg_exprs , $name:ident : $ty:ty) => {
+        store.get_component::<$ty>(entity)
+    };
+    (@internal @arg_exprs , $name:ident : $ty:ty , $($rest:tt)*) => {
+        store.get_component::<$ty>(entity), run_system!(@internal @arg_exprs , $($rest)*)
+    };
 }
 
 #[cfg(test)]
