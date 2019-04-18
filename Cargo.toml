@@ -4,7 +4,6 @@ members = [
 	"bins/ia-internal-debug-tool",
 	"libs/assets",
 	"libs/ecs",
-	"libs/ecs_proc",
 	"libs/iqm",
 	"libs/renderer",
 ]

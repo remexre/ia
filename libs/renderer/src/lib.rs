@@ -30,7 +30,6 @@
     while_true
 )]
 
-pub mod components;
 mod draw;
 mod initialize;
 
