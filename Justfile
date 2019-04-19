@@ -9,6 +9,9 @@ clean:
 watch TARGET="all":
 	watchexec -cre frag,lalrpop,rs,toml,vert "just {{TARGET}}"
 
+# Runs various benchmarks.
+bench:
+	cargo bench --all
 # Builds in both debug and release configurations.
 build: build-debug build-release
 # Builds the project in the debug configuration.
