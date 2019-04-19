@@ -5,9 +5,13 @@ use ecs::{Component, ComponentStore};
 struct ComponentZST;
 impl Component for ComponentZST {}
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 struct ComponentWord(usize);
 impl Component for ComponentWord {}
+
+#[derive(Debug, Eq, PartialEq)]
+struct ComponentStr(&'static str);
+impl Component for ComponentStr {}
 
 fn simple(c: &mut Criterion) {
     c.bench_function("get ZST (present)", |b| {
@@ -30,7 +34,7 @@ fn simple(c: &mut Criterion) {
     c.bench_function("get word-sized (present)", |b| {
         let mut cs = ComponentStore::new();
         let e = cs.new_entity();
-        e.set_component(e, ComponentWord(12345));
+        cs.set_component(e, ComponentWord(12345));
         b.iter(|| {
             cs.get_component::<ComponentWord>(e);
         })
@@ -43,6 +47,29 @@ fn simple(c: &mut Criterion) {
             cs.get_component::<ComponentWord>(e);
         })
     });
+
+    c.bench_function(
+        "get word-sized with null pointer optimization (present)",
+        |b| {
+            let mut cs = ComponentStore::new();
+            let e = cs.new_entity();
+            cs.set_component(e, ComponentStr("12345"));
+            b.iter(|| {
+                cs.get_component::<ComponentStr>(e);
+            })
+        },
+    );
+
+    c.bench_function(
+        "get word-sized with null pointer optimization (not present)",
+        |b| {
+            let mut cs = ComponentStore::new();
+            let e = cs.new_entity();
+            b.iter(|| {
+                cs.get_component::<ComponentStr>(e);
+            })
+        },
+    );
 
     c.bench_function("get not-present, set, get present; word-sized", |b| {
         let mut cs = ComponentStore::new();
