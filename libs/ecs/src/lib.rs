@@ -87,9 +87,13 @@ extern crate pretty_assertions;
 
 mod component_store;
 pub mod components;
+mod engine;
 mod unsafe_option_vec;
 
-pub use crate::component_store::ComponentStore;
+pub use crate::{
+    component_store::ComponentStore,
+    engine::{Engine, EnginePassBuilder},
+};
 pub use ecs_proc_macros::*;
 use std::{fmt::Debug, num::NonZeroUsize};
 
@@ -110,6 +114,31 @@ pub struct Entity(NonZeroUsize);
 /// struct Foo(u32, isize);
 /// ```
 pub trait Component: 'static + Debug + Send + Sync {}
+
+/// A system that does not modify the `ComponentStore`. These systems can be run in parallel with
+/// *each other*, but should generally not use parallelism internally.
+pub trait System: Send {
+    /// Runs the system.
+    fn run(&mut self, cs: &ComponentStore);
+}
+
+impl<T: ?Sized + System> System for Box<T> {
+    fn run(&mut self, cs: &ComponentStore) {
+        (**self).run(cs)
+    }
+}
+
+/// A system that modifies the `ComponentStore`.
+pub trait SystemMut {
+    /// Runs the system.
+    fn run(&mut self, cs: &mut ComponentStore);
+}
+
+impl<T: ?Sized + SystemMut> SystemMut for Box<T> {
+    fn run(&mut self, cs: &mut ComponentStore) {
+        (**self).run(cs)
+    }
+}
 
 /// Runs the given system on all entities that have all the relevant components.
 ///

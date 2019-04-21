@@ -36,12 +36,21 @@ use ecs::Component;
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// A model.
+#[derive(Component)]
 pub struct Model {}
-
-impl Component for Model {}
 
 impl Debug for Model {
     fn fmt(&self, fmt: &mut Formatter) -> FmtResult {
         fmt.debug_struct("Model").field("len", &()).finish()
+    }
+}
+
+/// A texture.
+#[derive(Component)]
+pub struct Texture {}
+
+impl Debug for Texture {
+    fn fmt(&self, fmt: &mut Formatter) -> FmtResult {
+        fmt.debug_struct("Texture").field("len", &()).finish()
     }
 }
