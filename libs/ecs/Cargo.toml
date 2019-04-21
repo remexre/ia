@@ -9,6 +9,7 @@ version = "0.1.0"
 [dependencies]
 cgmath = "0.17.0"
 derive_more = "0.14.0"
+ecs_proc_macros = { path = "../ecs_proc_macros" }
 safety-guard = "0.1.9"
 
 [dev-dependencies]

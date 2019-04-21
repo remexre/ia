@@ -6,9 +6,8 @@
 //! ```rust
 //! # use ecs::{components::{DebugFlag, Name}, run_system, Component, ComponentStore};
 //! # use std::fmt::Write;
-//! #[derive(Debug, PartialEq)]
+//! #[derive(Component, Debug, PartialEq)]
 //! struct Counter(usize);
-//! impl Component for Counter {}
 //!
 //! let mut store = ComponentStore::new();
 //!
@@ -91,15 +90,25 @@ pub mod components;
 mod unsafe_option_vec;
 
 pub use crate::component_store::ComponentStore;
-use std::fmt::Debug;
+pub use ecs_proc_macros::*;
+use std::{fmt::Debug, num::NonZeroUsize};
 
 /// An entity.
 ///
-/// This is simply an integer, wrapped up so as to preserve type safety.
+/// This is an integer, wrapped up so as to preserve type safety.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct Entity(usize);
+pub struct Entity(NonZeroUsize);
 
 /// Components are data which can be attached to entities via a `ComponentStore`.
+///
+/// This trait can be derived:
+///
+/// ```
+/// use ecs::Component;
+///
+/// #[derive(Component, Debug)]
+/// struct Foo(u32, isize);
+/// ```
 pub trait Component: 'static + Debug + Send + Sync {}
 
 /// Runs the given system on all entities that have all the relevant components.
@@ -146,8 +155,8 @@ pub trait Component: 'static + Debug + Send + Sync {}
 /// assert_eq!(
 ///     log,
 ///     concat![
-///         "Entity(0) Name(\"foo\")\n",
-///         "Entity(2) Name(\"baz\")\n",
+///         "Entity(1) Name(\"foo\")\n",
+///         "Entity(3) Name(\"baz\")\n",
 ///     ],
 /// );
 /// ```
