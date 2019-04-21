@@ -3,55 +3,77 @@
 //! Example
 //! -------
 //!
-//! ```rust
-//! # use ecs::{components::{DebugFlag, Name}, run_system, Component, ComponentStore};
-//! # use std::fmt::Write;
+//! ```
+//! # use ecs::{
+//! #     components::{DebugFlag, Name},
+//! #     system, system_closure, system_mut, Component, ComponentStore, Engine, Entity, System,
+//! # };
+//! # use std::sync::atomic::{AtomicUsize, Ordering};
 //! #[derive(Component, Debug, PartialEq)]
 //! struct Counter(usize);
 //!
-//! let mut store = ComponentStore::new();
-//!
-//! let foo = store.new_entity();
-//! let bar = store.new_entity();
-//! let baz = store.new_entity();
-//!
-//! store.set_component(foo, Name("foo".to_string()));
-//! store.set_component(bar, Name("bar".to_string()));
-//! store.set_component(baz, Name("baz".to_string()));
-//!
-//! store.set_component(foo, Counter(0));
-//! store.set_component(bar, Counter(0));
-//!
-//! store.set_component(foo, DebugFlag);
-//! store.set_component(baz, DebugFlag);
-//!
-//! let mut n = 0;
-//! while n < 25 {
-//!     // For each entity with a Counter component, increment it.
-//!     run_system!(store, |entity, mut ctr: Counter| {
-//!         ctr.0 += 1;
-//!     });
-//!
-//!     // Add the counter value of each entity with a Counter and a
-//!     // DebugFlag to n.
-//!     run_system!(store, |entity, ctr: Counter, _: DebugFlag| {
-//!         n += ctr.0;
-//!     });
+//! #[system(simple)]
+//! fn AssertNameHas3Bytes(entity: Entity, name: &Name) {
+//!     assert_eq!(name.0.len(), 3, "{:?}'s name ({}) should have been 3 bytes", entity, name);
 //! }
 //!
-//! assert_eq!(n, 28);
-//! assert_eq!(store.get_component::<Name>(foo).map(|Name(s)| s as &str), Some("foo"));
-//! assert_eq!(store.get_component::<Name>(bar).map(|Name(s)| s as &str), Some("bar"));
-//! assert_eq!(store.get_component::<Name>(baz).map(|Name(s)| s as &str), Some("baz"));
-//! assert_eq!(store.get_component::<Counter>(foo), Some(&Counter(7)));
-//! assert_eq!(store.get_component::<Counter>(bar), Some(&Counter(7)));
-//! assert_eq!(store.get_component::<Counter>(baz), None);
-//! assert_eq!(store.get_component::<DebugFlag>(foo), Some(&DebugFlag));
-//! assert_eq!(store.get_component::<DebugFlag>(bar), None);
-//! assert_eq!(store.get_component::<DebugFlag>(baz), Some(&DebugFlag));
+//! #[system_mut(simple)]
+//! fn IncrCounter(entity: Entity, counter: &mut Counter) {
+//!     counter.0 += 1;
+//! }
+//!
+//! struct SumDebugCounters<'a>(&'a AtomicUsize);
+//! impl<'a> System for SumDebugCounters<'a> {
+//!     fn run(&mut self, cs: &ComponentStore) {
+//!         cs.iter_entities().for_each(|entity| {
+//!             if let (Some(counter), Some(_)) =
+//!                     (cs.get_component::<Counter>(entity), cs.get_component::<DebugFlag>(entity)) {
+//!                 self.0.fetch_add(counter.0, Ordering::SeqCst);
+//!             }
+//!         })
+//!     }
+//! }
+//!
+//! let mut n = AtomicUsize::new(0);
+//! let mut engine = Engine::new()
+//!     .add_mut_pass(IncrCounter)
+//!     .build_par_pass()
+//!         .add(AssertNameHas3Bytes)
+//!         .add(SumDebugCounters(&n))
+//!     .finish();
+//!
+//! let foo = engine.cs.new_entity();
+//! let bar = engine.cs.new_entity();
+//! let baz = engine.cs.new_entity();
+//!
+//! engine.cs.set_component(foo, Name("foo".to_string()));
+//! engine.cs.set_component(bar, Name("bar".to_string()));
+//! engine.cs.set_component(baz, Name("baz".to_string()));
+//!
+//! engine.cs.set_component(foo, Counter(0));
+//! engine.cs.set_component(bar, Counter(0));
+//!
+//! engine.cs.set_component(foo, DebugFlag);
+//! engine.cs.set_component(baz, DebugFlag);
+//!
+//! while n.load(Ordering::SeqCst) < 25 {
+//!     engine.run_once();
+//! }
+//!
+//! assert_eq!(engine.cs.get_component::<Name>(foo).map(|Name(s)| &s as &str), Some("foo"));
+//! assert_eq!(engine.cs.get_component::<Name>(bar).map(|Name(s)| &s as &str), Some("bar"));
+//! assert_eq!(engine.cs.get_component::<Name>(baz).map(|Name(s)| &s as &str), Some("baz"));
+//! assert_eq!(engine.cs.get_component::<Counter>(foo), Some(&Counter(7)));
+//! assert_eq!(engine.cs.get_component::<Counter>(bar), Some(&Counter(7)));
+//! assert_eq!(engine.cs.get_component::<Counter>(baz), None);
+//! assert_eq!(engine.cs.get_component::<DebugFlag>(foo), Some(&DebugFlag));
+//! assert_eq!(engine.cs.get_component::<DebugFlag>(bar), None);
+//! assert_eq!(engine.cs.get_component::<DebugFlag>(baz), Some(&DebugFlag));
+//! assert_eq!(n.load(Ordering::SeqCst), 28);
 //! ```
 #![deny(
     bad_style,
+    bare_trait_objects,
     const_err,
     dead_code,
     improper_ctypes,
@@ -90,11 +112,15 @@ pub mod components;
 mod engine;
 mod unsafe_option_vec;
 
+#[doc(hidden)]
+pub use crate::component_store::SystemFunc as __SystemFunc;
 pub use crate::{
     component_store::ComponentStore,
     engine::{Engine, EnginePassBuilder},
 };
-pub use ecs_proc_macros::*;
+pub use ecs_proc_macros::{system, system_closure, system_mut, Component};
+#[doc(hidden)]
+pub use frunk as __frunk;
 use std::{fmt::Debug, num::NonZeroUsize};
 
 /// An entity.
@@ -138,162 +164,6 @@ impl<T: ?Sized + SystemMut> SystemMut for Box<T> {
     fn run(&mut self, cs: &mut ComponentStore) {
         (**self).run(cs)
     }
-}
-
-/// Runs the given system on all entities that have all the relevant components.
-///
-/// An unary function will be called for every entity:
-///
-/// ```rust
-/// # use ecs::{components::DebugFlag, run_system, ComponentStore};
-/// let mut store = ComponentStore::new();
-/// store.new_entity();
-/// store.new_entity();
-/// store.new_entity();
-///
-/// let mut n = 0;
-/// run_system!(store, |_entity| {
-///     n += 1;
-/// });
-/// assert_eq!(n, 3);
-/// ```
-///
-/// An `n`-ary function (where `n` > 2) will be called for every entity that has all of the
-/// specified components.
-///
-/// ```rust
-/// # use ecs::{components::{DebugFlag, Name}, run_system, ComponentStore};
-/// # use std::fmt::Write;
-/// let mut store = ComponentStore::new();
-///
-/// let foo = store.new_entity();
-/// let bar = store.new_entity();
-/// let baz = store.new_entity();
-///
-/// store.set_component(foo, Name("foo".to_string()));
-/// store.set_component(bar, Name("bar".to_string()));
-/// store.set_component(baz, Name("baz".to_string()));
-///
-/// store.set_component(foo, DebugFlag);
-/// store.set_component(baz, DebugFlag);
-///
-/// let mut log = String::new();
-/// run_system!(store, |entity, _: DebugFlag, name: Name| {
-///     writeln!(log, "{:?} {:?}", entity, name);
-/// });
-/// assert_eq!(
-///     log,
-///     concat![
-///         "Entity(1) Name(\"foo\")\n",
-///         "Entity(3) Name(\"baz\")\n",
-///     ],
-/// );
-/// ```
-///
-/// A second function can be provided, which takes the entity, the return value of the first
-/// function and a mutable reference to the `ComponentStore`.
-///
-/// ```rust
-/// # use ecs::{components::{DebugFlag, Name}, run_system, ComponentStore};
-/// # use std::fmt::Write;
-/// let mut store = ComponentStore::new();
-///
-/// let foo = store.new_entity();
-/// let bar = store.new_entity();
-/// let baz = store.new_entity();
-///
-/// store.set_component(foo, Name("foo".to_string()));
-/// store.set_component(bar, Name("bar".to_string()));
-/// store.set_component(baz, Name("baz".to_string()));
-///
-/// store.set_component(foo, DebugFlag);
-/// store.set_component(baz, DebugFlag);
-///
-/// let mut log = String::new();
-/// run_system!(store, |entity, _: DebugFlag, name: Name| {
-///     name.0.clone()
-/// }, |entity, ret, store| {
-///     let mut s = String::new();
-///     for c in ret.chars().rev() {
-///         s.push(c);
-///     }
-///     store.set_component(entity, Name(s));
-/// });
-///
-/// assert_eq!(store.get_component::<Name>(foo).map(|Name(s)| s as &str), Some("oof"));
-/// assert_eq!(store.get_component::<Name>(bar).map(|Name(s)| s as &str), Some("bar"));
-/// assert_eq!(store.get_component::<Name>(baz).map(|Name(s)| s as &str), Some("zab"));
-/// ```
-///
-/// Lastly, if a single binary function is provided, it can use `mut` in its `Component` argument
-/// to take it as a mutable reference.
-///
-/// ```rust
-/// # use ecs::{components::Name, run_system, ComponentStore};
-/// # use std::fmt::Write;
-/// let mut store = ComponentStore::new();
-///
-/// let foo = store.new_entity();
-/// let bar = store.new_entity();
-/// let baz = store.new_entity();
-///
-/// store.set_component(foo, Name("foo".to_string()));
-/// store.set_component(bar, Name("bar".to_string()));
-/// store.set_component(baz, Name("baz".to_string()));
-///
-/// let mut log = String::new();
-/// run_system!(store, |entity, mut name: Name| {
-///     let mut s = String::new();
-///     for c in name.0.chars().rev() {
-///         s.push(c);
-///     }
-///     name.0 = s;
-/// });
-///
-/// assert_eq!(store.get_component::<Name>(foo).map(|Name(s)| s as &str), Some("oof"));
-/// assert_eq!(store.get_component::<Name>(bar).map(|Name(s)| s as &str), Some("rab"));
-/// assert_eq!(store.get_component::<Name>(baz).map(|Name(s)| s as &str), Some("zab"));
-/// ```
-#[macro_export]
-macro_rules! run_system {
-    ($store:expr, |$entity:ident $(, $arg:tt : $argty:ty)*| $body:block) => {{
-        let store = &mut $store;
-        for $entity in store.iter_entities() {
-            if let ($(Some($arg),)*) = ($(store.get_component::<$argty>($entity),)*) {
-                $body
-            }
-        }
-    }};
-
-    ($store:expr, |$entity:ident, mut $arg:tt : $argty:ty| $body:block) => {{
-        let store = &mut $store;
-        for $entity in store.iter_entities() {
-            if let Some($arg) = store.get_mut_component::<$argty>($entity) {
-                $body
-            }
-        }
-    }};
-
-    (
-        $store:expr,
-        |$entity:ident $(, $arg:tt : $argty:ty)*| $body:block,
-        |$then_entity:ident, $val:tt, $then_store:tt| $then:block
-    ) => {{
-        let mut store = &mut $store;
-        for entity in store.iter_entities() {
-            let val = if let ($(Some($arg),)*) = ($(store.get_component::<$argty>(entity),)*) {
-                let $entity = entity;
-                Some($body)
-            } else {
-                None
-            };
-            if let Some($val) = val {
-                let $then_entity = entity;
-                let $then_store = &mut store;
-                $then
-            }
-        }
-    }};
 }
 
 #[cfg(test)]

@@ -1,6 +1,7 @@
 //! A Vulkan-based renderer.
 #![deny(
     bad_style,
+    bare_trait_objects,
     const_err,
     dead_code,
     improper_ctypes,

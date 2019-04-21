@@ -3,6 +3,7 @@
 //! This provides components for various assets, and a central value for loading them.
 #![deny(
     bad_style,
+    bare_trait_objects,
     const_err,
     dead_code,
     improper_ctypes,
