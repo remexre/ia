@@ -1,4 +1,5 @@
 use crate::{unsafe_option_vec::UnsafeOptionVec, Component, Entity};
+use frunk::{HCons, HNil, Hlist};
 use std::{any::TypeId, collections::HashMap, num::NonZeroUsize};
 
 /// A container for components.
@@ -71,4 +72,19 @@ impl ComponentStore {
                 .set::<T>(entity.0.get(), None)
         }
     }
+}
+
+/// A list of components that can be iterated over when iterating over a `ComponentStore`.
+///
+/// This is any `Hlist` of references to components.
+pub trait IterComponents {
+    type Out<'a>;
+}
+
+impl<H: Component, T: IterComponents> IterComponents for HCons<H, T> {
+    type Out<'a> = HCons<&'a H, T>;
+}
+
+impl IterComponents for HNil {
+    type Out<'a> = Hlist![Entity];
 }
