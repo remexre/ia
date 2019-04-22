@@ -143,6 +143,7 @@ fn system_inner_simple(system_like: SystemLike) -> Result<TokenStream, Error> {
         }
 
         #attrs
+        #[allow(non_upper_case_globals)]
         #vis static #name: #struct_name = #struct_name;
     }))
 }
@@ -202,6 +203,7 @@ fn system_mut_inner(system_like: SystemLike) -> Result<TokenStream, Error> {
         }
 
         #attrs
+        #[allow(non_upper_case_globals)]
         #vis static #name: #struct_name = #struct_name;
     }))
 }

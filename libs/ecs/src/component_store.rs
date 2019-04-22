@@ -1,8 +1,7 @@
 use crate::{unsafe_option_vec::UnsafeOptionVec, Component, Entity, System};
 use frunk::{hlist, Hlist};
-use std::{
-    any::TypeId, cell::UnsafeCell, collections::HashMap, marker::PhantomData, num::NonZeroUsize,
-};
+use hashbrown::HashMap;
+use std::{any::TypeId, cell::UnsafeCell, marker::PhantomData, num::NonZeroUsize};
 
 /// A container for components.
 #[derive(Debug)]
