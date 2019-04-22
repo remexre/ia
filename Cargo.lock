@@ -414,6 +414,7 @@ dependencies = [
  "ecs_proc_macros 0.1.0",
  "frunk 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pretty_assertions 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "rayon 1.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "safety-guard 0.1.9 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
