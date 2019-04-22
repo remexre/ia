@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use ecs::{Component, ComponentStore};
 
 #[derive(Debug)]
@@ -13,38 +13,56 @@ impl Component for ComponentWord {}
 struct ComponentStr(&'static str);
 impl Component for ComponentStr {}
 
-fn simple(c: &mut Criterion) {
+fn component_store(c: &mut Criterion) {
     c.bench_function("get ZST (present)", |b| {
         let mut cs = ComponentStore::new();
+        for _ in 0..5000 {
+            cs.new_entity();
+        }
         let e = cs.new_entity();
+        for _ in 0..5000 {
+            cs.new_entity();
+        }
         cs.set_component(e, ComponentZST);
-        b.iter(|| {
-            cs.get_component::<ComponentZST>(e);
-        })
+        b.iter(|| cs.get_component::<ComponentZST>(e))
     });
 
     c.bench_function("get ZST (not present)", |b| {
         let mut cs = ComponentStore::new();
+        for _ in 0..5000 {
+            cs.new_entity();
+        }
         let e = cs.new_entity();
-        b.iter(|| {
-            cs.get_component::<ComponentZST>(e);
-        })
+        for _ in 0..5000 {
+            cs.new_entity();
+        }
+        b.iter(|| cs.get_component::<ComponentZST>(e))
     });
 
     c.bench_function("get word-sized (present)", |b| {
         let mut cs = ComponentStore::new();
+        for _ in 0..5000 {
+            cs.new_entity();
+        }
         let e = cs.new_entity();
+        for _ in 0..5000 {
+            cs.new_entity();
+        }
         cs.set_component(e, ComponentWord(12345));
-        b.iter(|| {
-            cs.get_component::<ComponentWord>(e);
-        })
+        b.iter(|| cs.get_component::<ComponentWord>(e))
     });
 
     c.bench_function("get word-sized (not present)", |b| {
         let mut cs = ComponentStore::new();
+        for _ in 0..5000 {
+            cs.new_entity();
+        }
         let e = cs.new_entity();
+        for _ in 0..5000 {
+            cs.new_entity();
+        }
         b.iter(|| {
-            cs.get_component::<ComponentWord>(e);
+            black_box(cs.get_component::<ComponentWord>(e));
         })
     });
 
@@ -52,11 +70,15 @@ fn simple(c: &mut Criterion) {
         "get word-sized with null pointer optimization (present)",
         |b| {
             let mut cs = ComponentStore::new();
+            for _ in 0..5000 {
+                cs.new_entity();
+            }
             let e = cs.new_entity();
+            for _ in 0..5000 {
+                cs.new_entity();
+            }
             cs.set_component(e, ComponentStr("12345"));
-            b.iter(|| {
-                cs.get_component::<ComponentStr>(e);
-            })
+            b.iter(|| cs.get_component::<ComponentStr>(e))
         },
     );
 
@@ -64,10 +86,14 @@ fn simple(c: &mut Criterion) {
         "get word-sized with null pointer optimization (not present)",
         |b| {
             let mut cs = ComponentStore::new();
+            for _ in 0..5000 {
+                cs.new_entity();
+            }
             let e = cs.new_entity();
-            b.iter(|| {
-                cs.get_component::<ComponentStr>(e);
-            })
+            for _ in 0..5000 {
+                cs.new_entity();
+            }
+            b.iter(|| cs.get_component::<ComponentStr>(e))
         },
     );
 
@@ -85,5 +111,5 @@ fn simple(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, simple);
+criterion_group!(benches, component_store);
 criterion_main!(benches);

@@ -19,5 +19,9 @@ criterion = "0.2.11"
 pretty_assertions = "0.6.1"
 
 [[bench]]
-name = "simple"
+name = "component_store"
+harness = false
+
+[[bench]]
+name = "noop_system"
 harness = false

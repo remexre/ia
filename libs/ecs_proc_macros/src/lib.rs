@@ -111,7 +111,7 @@ fn system_inner_simple(system_like: SystemLike) -> Result<TokenStream, Error> {
     } = system_like;
 
     let struct_name = Ident::new(
-        &format!("__system_{}", Uuid::new_v4().to_simple()),
+        &format!("__system_{}_{}", name, Uuid::new_v4().to_simple()),
         proc_macro2::Span::call_site(),
     );
 
@@ -159,7 +159,7 @@ fn system_mut_inner(system_like: SystemLike) -> Result<TokenStream, Error> {
     } = system_like;
 
     let struct_name = Ident::new(
-        &format!("__system_mut_{}", Uuid::new_v4().to_simple()),
+        &format!("__system_mut_{}_{}", name, Uuid::new_v4().to_simple()),
         proc_macro2::Span::call_site(),
     );
 
