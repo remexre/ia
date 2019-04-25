@@ -1,5 +1,6 @@
 use crate::{ComponentStore, System, SystemMut};
 use frunk::{hlist, Hlist};
+use std::time::Instant;
 
 /// An `Engine` that wraps a trait object.
 type BoxedEngine = Engine<Box<dyn SystemMut>>;
@@ -8,7 +9,9 @@ type BoxedEngine = Engine<Box<dyn SystemMut>>;
 #[derive(Debug)]
 pub struct Engine<P: SystemMut> {
     /// The `ComponentStore` being wrapped.
-    pub cs: ComponentStore,
+    pub store: ComponentStore,
+
+    last_frame: Instant,
     passes: P,
 }
 
@@ -16,7 +19,8 @@ impl Engine<Hlist![]> {
     /// Creates an engine with no systems.
     pub fn new() -> Engine<Hlist![]> {
         Engine {
-            cs: ComponentStore::new(),
+            store: ComponentStore::new(),
+            last_frame: Instant::now(),
             passes: hlist![],
         }
     }
@@ -39,14 +43,20 @@ impl<P: SystemMut> Engine<P> {
     /// Maps the `passes` variable.
     fn map_passes<F: FnOnce(P) -> T, T: SystemMut>(self, func: F) -> Engine<T> {
         Engine {
-            cs: self.cs,
+            store: self.store,
+            last_frame: self.last_frame,
             passes: func(self.passes),
         }
     }
 
     /// Runs the engine for one "turn," which encompassing running all systems once.
     pub fn run_once(&mut self) {
-        self.passes.run(&mut self.cs)
+        let now = Instant::now();
+        let dt = now.duration_since(self.last_frame);
+        self.last_frame = now;
+
+        let dt = (dt.as_nanos() as f32) / 1_000_000_000.0;
+        self.passes.run(&mut self.store, dt)
     }
 }
 
@@ -89,31 +99,31 @@ pub struct Mut<T>(T);
 pub struct Par<T>(T);
 
 impl<H: System, T: SystemMut> SystemMut for Hlist![Par<H>, ...T] {
-    fn run(&mut self, cs: &mut ComponentStore) {
-        self.tail.run(cs);
-        self.head.0.run(cs);
+    fn run(&mut self, cs: &mut ComponentStore, dt: f32) {
+        self.tail.run(cs, dt);
+        self.head.0.run(cs, dt);
     }
 }
 
 impl<H: SystemMut, T: SystemMut> SystemMut for Hlist![Mut<H>, ...T] {
-    fn run(&mut self, cs: &mut ComponentStore) {
-        self.tail.run(cs);
-        self.head.0.run(cs);
+    fn run(&mut self, cs: &mut ComponentStore, dt: f32) {
+        self.tail.run(cs, dt);
+        self.head.0.run(cs, dt);
     }
 }
 
 impl SystemMut for Hlist![] {
-    fn run(&mut self, _: &mut ComponentStore) {}
+    fn run(&mut self, _: &mut ComponentStore, _: f32) {}
 }
 
 impl<H: System, T: System> System for Hlist![H, ...T] {
-    fn run(&mut self, cs: &ComponentStore) {
+    fn run(&mut self, cs: &ComponentStore, dt: f32) {
         let h = &mut self.head;
         let t = &mut self.tail;
-        let ((), ()) = rayon::join(|| h.run(cs), || t.run(cs));
+        let ((), ()) = rayon::join(|| h.run(cs, dt), || t.run(cs, dt));
     }
 }
 
 impl System for Hlist![] {
-    fn run(&mut self, _: &ComponentStore) {}
+    fn run(&mut self, _: &ComponentStore, _: f32) {}
 }

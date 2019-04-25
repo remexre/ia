@@ -6,25 +6,25 @@
 //! ```
 //! # use ecs::{
 //! #     components::{DebugFlag, Name},
-//! #     system, system_closure, system_mut, Component, ComponentStore, Engine, Entity, System,
+//! #     system, system_mut, Component, ComponentStore, Engine, Entity, System,
 //! # };
 //! # use std::sync::atomic::{AtomicUsize, Ordering};
 //! #[derive(Component, Debug, PartialEq)]
 //! struct Counter(usize);
 //!
 //! #[system(simple)]
-//! fn AssertNameHas3Bytes(entity: Entity, name: &Name) {
+//! fn AssertNameHas3Bytes(entity: Entity, _dt: f32, name: &Name) {
 //!     assert_eq!(name.0.len(), 3, "{:?}'s name ({}) should have been 3 bytes", entity, name);
 //! }
 //!
 //! #[system_mut(simple)]
-//! fn IncrCounter(entity: Entity, counter: &mut Counter) {
+//! fn IncrCounter(entity: Entity, _dt: f32, counter: &mut Counter) {
 //!     counter.0 += 1;
 //! }
 //!
 //! struct SumDebugCounters<'a>(&'a AtomicUsize);
 //! impl<'a> System for SumDebugCounters<'a> {
-//!     fn run(&mut self, cs: &ComponentStore) {
+//!     fn run(&mut self, cs: &ComponentStore, _dt: f32) {
 //!         cs.iter_entities().for_each(|entity| {
 //!             if let (Some(counter), Some(_)) =
 //!                     (cs.get_component::<Counter>(entity), cs.get_component::<DebugFlag>(entity)) {
@@ -42,33 +42,33 @@
 //!         .add(SumDebugCounters(&n))
 //!     .finish();
 //!
-//! let foo = engine.cs.new_entity();
-//! let bar = engine.cs.new_entity();
-//! let baz = engine.cs.new_entity();
+//! let foo = engine.store.new_entity();
+//! let bar = engine.store.new_entity();
+//! let baz = engine.store.new_entity();
 //!
-//! engine.cs.set_component(foo, Name("foo".to_string()));
-//! engine.cs.set_component(bar, Name("bar".to_string()));
-//! engine.cs.set_component(baz, Name("baz".to_string()));
+//! engine.store.set_component(foo, Name("foo".to_string()));
+//! engine.store.set_component(bar, Name("bar".to_string()));
+//! engine.store.set_component(baz, Name("baz".to_string()));
 //!
-//! engine.cs.set_component(foo, Counter(0));
-//! engine.cs.set_component(bar, Counter(0));
+//! engine.store.set_component(foo, Counter(0));
+//! engine.store.set_component(bar, Counter(0));
 //!
-//! engine.cs.set_component(foo, DebugFlag);
-//! engine.cs.set_component(baz, DebugFlag);
+//! engine.store.set_component(foo, DebugFlag);
+//! engine.store.set_component(baz, DebugFlag);
 //!
 //! while n.load(Ordering::SeqCst) < 25 {
 //!     engine.run_once();
 //! }
 //!
-//! assert_eq!(engine.cs.get_component::<Name>(foo).map(|Name(s)| &s as &str), Some("foo"));
-//! assert_eq!(engine.cs.get_component::<Name>(bar).map(|Name(s)| &s as &str), Some("bar"));
-//! assert_eq!(engine.cs.get_component::<Name>(baz).map(|Name(s)| &s as &str), Some("baz"));
-//! assert_eq!(engine.cs.get_component::<Counter>(foo), Some(&Counter(7)));
-//! assert_eq!(engine.cs.get_component::<Counter>(bar), Some(&Counter(7)));
-//! assert_eq!(engine.cs.get_component::<Counter>(baz), None);
-//! assert_eq!(engine.cs.get_component::<DebugFlag>(foo), Some(&DebugFlag));
-//! assert_eq!(engine.cs.get_component::<DebugFlag>(bar), None);
-//! assert_eq!(engine.cs.get_component::<DebugFlag>(baz), Some(&DebugFlag));
+//! assert_eq!(engine.store.get_component::<Name>(foo).map(|Name(s)| &s as &str), Some("foo"));
+//! assert_eq!(engine.store.get_component::<Name>(bar).map(|Name(s)| &s as &str), Some("bar"));
+//! assert_eq!(engine.store.get_component::<Name>(baz).map(|Name(s)| &s as &str), Some("baz"));
+//! assert_eq!(engine.store.get_component::<Counter>(foo), Some(&Counter(7)));
+//! assert_eq!(engine.store.get_component::<Counter>(bar), Some(&Counter(7)));
+//! assert_eq!(engine.store.get_component::<Counter>(baz), None);
+//! assert_eq!(engine.store.get_component::<DebugFlag>(foo), Some(&DebugFlag));
+//! assert_eq!(engine.store.get_component::<DebugFlag>(bar), None);
+//! assert_eq!(engine.store.get_component::<DebugFlag>(baz), Some(&DebugFlag));
 //! assert_eq!(n.load(Ordering::SeqCst), 28);
 //! ```
 #![deny(
@@ -118,7 +118,7 @@ pub use crate::{
     component_store::ComponentStore,
     engine::{Engine, EnginePassBuilder},
 };
-pub use ecs_proc_macros::{system, system_closure, system_mut, Component};
+pub use ecs_proc_macros::{system, system_mut, Component};
 #[doc(hidden)]
 pub use frunk as __frunk;
 use std::{fmt::Debug, num::NonZeroUsize};
@@ -145,24 +145,28 @@ pub trait Component: 'static + Debug + Send + Sync {}
 /// *each other*, but should generally not use parallelism internally.
 pub trait System: Send {
     /// Runs the system.
-    fn run(&mut self, cs: &ComponentStore);
+    ///
+    /// `dt` is in seconds.
+    fn run(&mut self, cs: &ComponentStore, dt: f32);
 }
 
 impl<T: ?Sized + System> System for Box<T> {
-    fn run(&mut self, cs: &ComponentStore) {
-        (**self).run(cs)
+    fn run(&mut self, cs: &ComponentStore, dt: f32) {
+        (**self).run(cs, dt)
     }
 }
 
 /// A system that modifies the `ComponentStore`.
 pub trait SystemMut {
     /// Runs the system.
-    fn run(&mut self, cs: &mut ComponentStore);
+    ///
+    /// `dt` is in seconds.
+    fn run(&mut self, cs: &mut ComponentStore, dt: f32);
 }
 
 impl<T: ?Sized + SystemMut> SystemMut for Box<T> {
-    fn run(&mut self, cs: &mut ComponentStore) {
-        (**self).run(cs)
+    fn run(&mut self, cs: &mut ComponentStore, dt: f32) {
+        (**self).run(cs, dt)
     }
 }
 

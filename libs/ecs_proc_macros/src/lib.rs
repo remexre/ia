@@ -20,86 +20,23 @@ pub fn derive_component(input: TokenStream) -> TokenStream {
 
 /// Creates an `ecs::System` from a function. See the `ecs` library for an example.
 #[proc_macro_attribute]
-pub fn system(attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn system(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let func = parse_macro_input!(item as ItemFn);
-    let kind = parse_macro_input!(attr as Ident);
-    match &kind.to_string() as &str {
-        "closure" => Err(Error::new(
-            kind.span(),
-            "ecs::system kind `closure` is currently broken; see `ecs::system_closure`",
-        )),
-        "simple" => system_like(func, "ecs::system", false).and_then(system_inner_simple),
-        kind => Err(Error::new(
-            kind.span(),
-            format!(
-                "invalid ecs::system kind `{}`: should be `simple` or `closure`",
-                kind
-            ),
-        )),
-    }
-    .unwrap_or_else(|err| err.to_compile_error().into())
-}
-
-/// Creates an `ecs::System` from a function, which is allowed to capture outer variables. See the
-/// `ecs` library for an example.
-#[proc_macro]
-pub fn system_closure(item: TokenStream) -> TokenStream {
-    let func = parse_macro_input!(item as ItemFn);
-    system_like(func, "ecs::system_closure", false)
-        .and_then(system_inner_closure)
+    system_like(func, "ecs::system", false)
+        .and_then(system_inner)
         .unwrap_or_else(|err| err.to_compile_error().into())
 }
 
 /// Creates an `ecs::SystemMut` from a function. See the `ecs` library for an example.
 #[proc_macro_attribute]
-pub fn system_mut(attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn system_mut(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let func = parse_macro_input!(item as ItemFn);
-    let kind = parse_macro_input!(attr as Ident);
-    match &kind.to_string() as &str {
-        "simple" => system_like(func, "ecs::system_mut", true).and_then(system_mut_inner),
-        kind => Err(Error::new(
-            kind.span(),
-            format!(
-                "invalid ecs::system_mut kind `{}`: should be `simple`",
-                kind
-            ),
-        )),
-    }
-    .unwrap_or_else(|err| err.to_compile_error().into())
+    system_like(func, "ecs::system_mut", true)
+        .and_then(system_mut_inner)
+        .unwrap_or_else(|err| err.to_compile_error().into())
 }
 
-fn system_inner_closure(system_like: SystemLike) -> Result<TokenStream, Error> {
-    let SystemLike {
-        attrs: _,
-        vis: _,
-        name,
-        block,
-        entity_pat,
-        entity_ty,
-        inputs,
-    } = system_like;
-
-    // TODO: attrs and vis should be None.
-
-    let arg_pat = inputs.iter().fold(
-        quote! { ecs::__frunk::HCons { head: #entity_pat, tail: ecs::__frunk::HNil } },
-        |acc, (pat, _)| {
-            quote! { ecs::__frunk::HCons { head: #pat, tail: #acc } }
-        },
-    );
-    let arg_ty = inputs.into_iter().fold(
-        quote! { ecs::__frunk::HCons<&#entity_ty, ecs::__frunk::HNil> },
-        |acc, (_, ty)| {
-            quote! { ecs::__frunk::HCons<#ty, #acc> }
-        },
-    );
-
-    Ok(TokenStream::from(quote! {
-        let #name = ecs::SystemFunc(|#arg_pat: #arg_ty| #block);
-    }))
-}
-
-fn system_inner_simple(system_like: SystemLike) -> Result<TokenStream, Error> {
+fn system_inner(system_like: SystemLike) -> Result<TokenStream, Error> {
     let SystemLike {
         attrs,
         vis,
@@ -107,6 +44,8 @@ fn system_inner_simple(system_like: SystemLike) -> Result<TokenStream, Error> {
         block,
         entity_pat,
         entity_ty,
+        dt_pat,
+        dt_ty,
         inputs,
     } = system_like;
 
@@ -137,7 +76,7 @@ fn system_inner_simple(system_like: SystemLike) -> Result<TokenStream, Error> {
         }
 
         impl ecs::System for #struct_name {
-            fn run(&mut self, cs: &ecs::ComponentStore) {
+            fn run(&mut self, cs: &ecs::ComponentStore, #dt_pat: #dt_ty) {
                 cs.iter_entities().for_each(|#entity_pat: #entity_ty| #body)
             }
         }
@@ -156,6 +95,8 @@ fn system_mut_inner(system_like: SystemLike) -> Result<TokenStream, Error> {
         block,
         entity_pat,
         entity_ty,
+        dt_pat,
+        dt_ty,
         inputs,
     } = system_like;
 
@@ -196,7 +137,7 @@ fn system_mut_inner(system_like: SystemLike) -> Result<TokenStream, Error> {
         }
 
         impl ecs::SystemMut for #struct_name {
-            fn run(&mut self, cs: &mut ecs::ComponentStore) {
+            fn run(&mut self, cs: &mut ecs::ComponentStore, #dt_pat: #dt_ty) {
                 #tys_must_be_distinct
                 cs.iter_entities().for_each(|#entity_pat: #entity_ty| #body)
             }
@@ -238,6 +179,8 @@ struct SystemLike {
     block: Block,
     entity_pat: Pat,
     entity_ty: Type,
+    dt_pat: Pat,
+    dt_ty: Type,
     inputs: Vec<(Pat, Type)>,
 }
 
@@ -280,14 +223,18 @@ fn system_like(func: ItemFn, name: &str, args_mut: bool) -> Result<SystemLike, E
             })
             .collect::<Result<Vec<(Pat, Type)>, FnArg>>();
         match inputs {
-            Ok(ref inputs) if inputs.is_empty() => Err(Error::new(
+            Ok(ref inputs) if inputs.len() < 2 => Err(Error::new(
                 func.decl.paren_token.span,
-                format!("an {} must have at least one entity argument", name),
+                format!(
+                    "an {} must have at least one entity argument and one dt argument",
+                    name
+                ),
             )),
 
             Ok(mut inputs) => {
                 let (entity_pat, entity_ty) = inputs.remove(0);
                 // TODO: Check that entity_pat is an identifier.
+                let (dt_pat, dt_ty) = inputs.remove(0);
 
                 let inputs = inputs
                     .into_iter()
@@ -332,6 +279,8 @@ fn system_like(func: ItemFn, name: &str, args_mut: bool) -> Result<SystemLike, E
                     block: *func.block,
                     entity_pat,
                     entity_ty,
+                    dt_pat,
+                    dt_ty,
                     inputs,
                 })
             }

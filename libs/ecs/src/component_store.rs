@@ -1,6 +1,7 @@
 use crate::{unsafe_option_vec::UnsafeOptionVec, Component, Entity, System};
 use frunk::{hlist, Hlist};
 use hashbrown::HashMap;
+use safety_guard::safety;
 use std::{any::TypeId, cell::UnsafeCell, marker::PhantomData, num::NonZeroUsize};
 
 /// A container for components.
@@ -85,6 +86,9 @@ impl ComponentStore {
 
     /// Gets a component for a given entity. This is unsafe since it makes it possible to have two
     /// mutable references to the same component if called twice with the same T.
+    #[safety(
+        "The references returned by calling this function with the same T must not exist at once."
+    )]
     pub unsafe fn unsafe_get_mut_component<T: Component>(&self, entity: Entity) -> Option<&mut T> {
         self.components
             .get()
@@ -107,13 +111,13 @@ pub struct SystemFunc<F, T> {
 
 impl<F, T> System for SystemFunc<F, T>
 where
-    F: for<'a> FnMut(<T as IterComponents<'a>>::Out) + Send + Sync,
+    F: for<'a> FnMut(<T as IterComponents<'a>>::Out, f32) + Send + Sync,
     T: for<'a> IterComponents<'a>,
 {
-    fn run<'a>(&mut self, cs: &'a ComponentStore) {
+    fn run<'a>(&mut self, cs: &'a ComponentStore, dt: f32) {
         for e in cs.iter_entities() {
             if let Some(args) = <T as IterComponents<'a>>::extract_entity(cs, e) {
-                (self.func)(args)
+                (self.func)(args, dt)
             }
         }
     }
