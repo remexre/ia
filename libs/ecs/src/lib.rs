@@ -112,8 +112,6 @@ pub mod components;
 mod engine;
 mod unsafe_option_vec;
 
-#[doc(hidden)]
-pub use crate::component_store::SystemFunc as __SystemFunc;
 pub use crate::{
     component_store::ComponentStore,
     engine::{Engine, EnginePassBuilder},
