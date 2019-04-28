@@ -14,24 +14,24 @@ pub fn derive_component(input: TokenStream) -> TokenStream {
     let name = input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     TokenStream::from(quote! {
-         impl #impl_generics ::ecs::Component for #name #ty_generics #where_clause {}
+         impl #impl_generics ::ecstasy::Component for #name #ty_generics #where_clause {}
     })
 }
 
-/// Creates an `ecs::System` from a function. See the `ecs` library for an example.
+/// Creates an `ecstasy::System` from a function. See the `ecstasy` crate for an example.
 #[proc_macro_attribute]
 pub fn system(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let func = parse_macro_input!(item as ItemFn);
-    system_like(func, "ecs::system", false)
+    system_like(func, "ecstasy::system", false)
         .and_then(system_inner)
         .unwrap_or_else(|err| err.to_compile_error().into())
 }
 
-/// Creates an `ecs::SystemMut` from a function. See the `ecs` library for an example.
+/// Creates an `ecstasy::SystemMut` from a function. See the `ecstasy` crate for an example.
 #[proc_macro_attribute]
 pub fn system_mut(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let func = parse_macro_input!(item as ItemFn);
-    system_like(func, "ecs::system_mut", true)
+    system_like(func, "ecstasy::system_mut", true)
         .and_then(system_mut_inner)
         .unwrap_or_else(|err| err.to_compile_error().into())
 }
@@ -75,8 +75,8 @@ fn system_inner(system_like: SystemLike) -> Result<TokenStream, Error> {
             }
         }
 
-        impl ecs::System for #struct_name {
-            fn run(&mut self, cs: &ecs::ComponentStore, #dt_pat: #dt_ty) {
+        impl ecstasy::System for #struct_name {
+            fn run(&mut self, cs: &ecstasy::ComponentStore, #dt_pat: #dt_ty) {
                 cs.iter_entities().for_each(|#entity_pat: #entity_ty| #body)
             }
         }
@@ -136,8 +136,8 @@ fn system_mut_inner(system_like: SystemLike) -> Result<TokenStream, Error> {
             }
         }
 
-        impl ecs::SystemMut for #struct_name {
-            fn run(&mut self, cs: &mut ecs::ComponentStore, #dt_pat: #dt_ty) {
+        impl ecstasy::SystemMut for #struct_name {
+            fn run(&mut self, cs: &mut ecstasy::ComponentStore, #dt_pat: #dt_ty) {
                 #tys_must_be_distinct
                 cs.iter_entities().for_each(|#entity_pat: #entity_ty| #body)
             }

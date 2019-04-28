@@ -1,4 +1,4 @@
-use ecs::ComponentStore;
+use ecstasy::ComponentStore;
 use libremexre::errors::Result;
 use log::info;
 use renderer::Renderer;

@@ -3,8 +3,8 @@ members = [
 	"bins/ia",
 	"bins/ia-internal-debug-tool",
 	"libs/assets",
-	"libs/ecs",
-	"libs/ecs_proc_macros",
+	"libs/ecstasy",
+	"libs/ecstasy_proc_macros",
 	"libs/iqm",
 	"libs/renderer",
 ]

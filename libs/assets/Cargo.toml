@@ -7,4 +7,4 @@ name = "assets"
 version = "0.1.0"
 
 [dependencies]
-ecs = { path = "../ecs" }
+ecstasy = { path = "../ecstasy" }

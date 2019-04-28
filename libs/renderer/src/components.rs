@@ -1,7 +1,7 @@
 //! Components used by the renderer.
 
 use assets::{Model, Texture};
-use ecs::Component;
+use ecstasy::Component;
 use std::sync::Arc;
 
 /// This changes the maximum draw radius from the default to the given value.

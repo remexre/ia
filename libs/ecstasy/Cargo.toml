@@ -3,13 +3,13 @@ authors = ["Nathan Ringo <remexre@protonmail.com>"]
 description = "A simple ECS library."
 license = "Apache-2.0/MIT"
 edition = "2018"
-name = "ecs"
+name = "ecstasy"
 version = "0.1.0"
 
 [dependencies]
 cgmath = "0.17.0"
 derive_more = "0.14.0"
-ecs_proc_macros = { path = "../ecs_proc_macros" }
+ecstasy_proc_macros = { path = "../ecstasy_proc_macros" }
 frunk = "0.3.0"
 hashbrown = "0.2.2"
 rayon = "1.0.3"

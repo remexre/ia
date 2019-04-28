@@ -33,7 +33,7 @@
     while_true
 )]
 
-use ecs::Component;
+use ecstasy::Component;
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// A model.

@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use ecs::{
+use ecstasy::{
     components::{DebugFlag, Name, Position},
     system, system_mut, Engine, Entity,
 };

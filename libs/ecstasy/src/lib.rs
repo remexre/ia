@@ -4,7 +4,7 @@
 //! -------
 //!
 //! ```
-//! # use ecs::{
+//! # use ecstasy::{
 //! #     components::{DebugFlag, Name},
 //! #     system, system_mut, Component, ComponentStore, Engine, Entity, System,
 //! # };
@@ -116,7 +116,7 @@ pub use crate::{
     component_store::ComponentStore,
     engine::{Engine, EnginePassBuilder},
 };
-pub use ecs_proc_macros::{system, system_mut, Component};
+pub use ecstasy_proc_macros::{system, system_mut, Component};
 #[doc(hidden)]
 pub use frunk as __frunk;
 use std::{fmt::Debug, num::NonZeroUsize};
@@ -132,7 +132,7 @@ pub struct Entity(NonZeroUsize);
 /// This trait can be derived:
 ///
 /// ```
-/// use ecs::Component;
+/// use ecstasy::Component;
 ///
 /// #[derive(Component, Debug)]
 /// struct Foo(u32, isize);

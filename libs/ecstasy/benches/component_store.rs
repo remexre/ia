@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use ecs::{Component, ComponentStore, Entity};
+use ecstasy::{Component, ComponentStore, Entity};
 use rand::random;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
