@@ -3,6 +3,7 @@ use crate::{
     Component, ComponentStore,
 };
 use cgmath::Point3;
+use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 #[test]
@@ -44,7 +45,7 @@ fn simple() {
 fn dropping() {
     static N: AtomicUsize = AtomicUsize::new(0);
 
-    #[derive(Debug)]
+    #[derive(Debug, Deserialize, Serialize)]
     struct C;
     impl C {
         fn new() -> C {
@@ -52,6 +53,7 @@ fn dropping() {
             C
         }
     }
+    #[typetag::serde]
     impl Component for C {}
     impl Drop for C {
         fn drop(&mut self) {
@@ -84,8 +86,9 @@ fn dropping() {
 fn no_double_drop() {
     static FIRST_PANIC: AtomicBool = AtomicBool::new(true);
 
-    #[derive(Debug, Default)]
+    #[derive(Debug, Default, Deserialize, Serialize)]
     struct P(bool);
+    #[typetag::serde]
     impl Component for P {}
     impl Drop for P {
         fn drop(&mut self) {

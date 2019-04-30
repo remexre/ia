@@ -8,3 +8,5 @@ version = "0.1.0"
 
 [dependencies]
 ecstasy = { path = "../ecstasy" }
+serde = "1.0.90"
+typetag = "0.1.2"

@@ -8,8 +8,9 @@
 //! #     components::{DebugFlag, Name},
 //! #     system, system_mut, Component, ComponentStore, Engine, Entity, System,
 //! # };
+//! # use serde::{Deserialize, Serialize};
 //! # use std::sync::atomic::{AtomicUsize, Ordering};
-//! #[derive(Component, Debug, PartialEq)]
+//! #[derive(Component, Debug, Deserialize, PartialEq, Serialize)]
 //! struct Counter(usize);
 //!
 //! #[system(simple)]
@@ -79,7 +80,7 @@
     improper_ctypes,
     legacy_directory_ownership,
     missing_debug_implementations,
-    missing_docs,
+    // missing_docs,
     no_mangle_generic_items,
     non_shorthand_field_patterns,
     overflowing_literals,
@@ -132,11 +133,13 @@ pub struct Entity(NonZeroUsize);
 /// This trait can be derived:
 ///
 /// ```
+/// # use serde::{Deserialize, Serialize};
 /// use ecstasy::Component;
 ///
-/// #[derive(Component, Debug)]
+/// #[derive(Component, Debug, Deserialize, Serialize)]
 /// struct Foo(u32, isize);
 /// ```
+#[typetag::serde(tag = "t")]
 pub trait Component: 'static + Debug + Send + Sync {}
 
 /// A system that does not modify the `ComponentStore`. These systems can be run in parallel with

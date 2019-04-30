@@ -14,7 +14,8 @@ pub fn derive_component(input: TokenStream) -> TokenStream {
     let name = input.ident;
     let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
     TokenStream::from(quote! {
-         impl #impl_generics ::ecstasy::Component for #name #ty_generics #where_clause {}
+        #[typetag::serde]
+        impl #impl_generics ::ecstasy::Component for #name #ty_generics #where_clause {}
     })
 }
 

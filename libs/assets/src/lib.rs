@@ -34,10 +34,11 @@
 )]
 
 use ecstasy::Component;
+use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 /// A model.
-#[derive(Component)]
+#[derive(Component, Deserialize, Serialize)]
 pub struct Model {}
 
 impl Debug for Model {
@@ -47,7 +48,7 @@ impl Debug for Model {
 }
 
 /// A texture.
-#[derive(Component)]
+#[derive(Component, Deserialize, Serialize)]
 pub struct Texture {}
 
 impl Debug for Texture {
