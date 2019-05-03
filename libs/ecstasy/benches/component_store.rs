@@ -1,18 +1,17 @@
 use criterion::{criterion_group, criterion_main, Criterion};
 use ecstasy::{Component, ComponentStore, Entity};
 use rand::random;
+use serde::{Deserialize, Serialize};
+use std::num::NonZeroUsize;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Component, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 struct ComponentZST;
-impl Component for ComponentZST {}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Component, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
 struct ComponentWord(usize);
-impl Component for ComponentWord {}
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-struct ComponentStr(&'static str);
-impl Component for ComponentStr {}
+#[derive(Clone, Component, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+struct ComponentNPO(NonZeroUsize);
 
 fn set_up_component_store<T: Component + Copy>(
     component: T,
@@ -68,7 +67,7 @@ fn component_store(c: &mut Criterion) {
     bench_getters(c, ComponentWord(12345), "word-sized");
     bench_getters(
         c,
-        ComponentStr("12345"),
+        ComponentNPO(NonZeroUsize::new(12345).unwrap()),
         "word-sized with null pointer optimization",
     );
 

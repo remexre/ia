@@ -33,6 +33,8 @@
     while_true
 )]
 
+mod cache;
+
 use ecstasy::Component;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Debug, Formatter, Result as FmtResult};
