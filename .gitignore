@@ -2,4 +2,6 @@
 !.gitignore
 !.travis.yml
 
+dist/
+docs/book/
 target/

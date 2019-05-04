@@ -26,17 +26,26 @@ fn simple() {
     store.remove_component::<Position>(foo);
 
     assert_eq!(
-        store.get_component::<Name>(foo).map(|n| -> &str { &n.0 }),
+        store
+            .get_component::<Name>(foo)
+            .as_ref()
+            .map(|n| -> &str { &n.0 }),
         Some("Foo")
     );
-    assert_eq!(store.get_component::<Position>(foo).map(|p| p.0), None);
+    assert_eq!(
+        store.get_component::<Position>(foo).as_ref().map(|p| p.0),
+        None
+    );
 
     assert_eq!(
-        store.get_component::<Name>(bar).map(|n| -> &str { &n.0 }),
+        store
+            .get_component::<Name>(bar)
+            .as_ref()
+            .map(|n| -> &str { &n.0 }),
         Some("Bar")
     );
     assert_eq!(
-        store.get_component::<Position>(bar).map(|p| p.0),
+        store.get_component::<Position>(bar).as_ref().map(|p| p.0),
         Some(Point3::new(1.0, 2.0, 3.0))
     );
 }

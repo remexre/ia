@@ -1,0 +1,5 @@
+[book]
+authors = ["Nathan Ringo <remexre@protonmail.com>"]
+multilingual = false
+src = "."
+title = "Ia"

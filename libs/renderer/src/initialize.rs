@@ -14,7 +14,7 @@ use winit::{EventsLoop, Window, WindowBuilder};
 
 impl Renderer {
     /// Creates a new `Renderer`.
-    pub fn new() -> Result<Renderer> {
+    pub fn new() -> Result<(Renderer, EventsLoop)> {
         let instance = Instance::new(None, &vulkano_win::required_extensions(), None)?;
 
         let mut pds = PhysicalDevice::enumerate(&instance)
@@ -89,17 +89,19 @@ impl Renderer {
 
         let cleanup_future = now(device.clone());
 
-        Ok(Renderer {
-            device,
-            event_loop,
-            images,
-            instance,
-            queue,
-            surface,
-            swapchain,
+        Ok((
+            Renderer {
+                device,
+                images,
+                instance,
+                queue,
+                surface,
+                swapchain,
 
-            cleanup_future: Some(Box::new(cleanup_future)),
-        })
+                cleanup_future: Some(Box::new(cleanup_future)),
+            },
+            event_loop,
+        ))
     }
 
     /// Recreates the swapchain, to account for e.g. a new window size.

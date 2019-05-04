@@ -36,22 +36,25 @@ mod draw;
 mod initialize;
 
 use derivative::Derivative;
+use ecstasy::{ComponentStore, System};
+use log::error;
 use std::sync::Arc;
 use vulkano::{
+    command_buffer::AutoCommandBufferBuilder,
     device::{Device, Queue},
+    format::ClearValue,
     image::SwapchainImage,
     instance::Instance,
     swapchain::{Surface, Swapchain},
     sync::GpuFuture,
 };
-use winit::{Event, EventsLoop, Window};
+use winit::Window;
 
 /// The main renderer value.
 #[derive(Derivative)]
 #[derivative(Debug)]
 pub struct Renderer {
     device: Arc<Device>,
-    event_loop: EventsLoop,
     #[derivative(Debug = "ignore")]
     images: Vec<Arc<SwapchainImage<Window>>>,
     instance: Arc<Instance>,
@@ -60,15 +63,24 @@ pub struct Renderer {
     swapchain: Arc<Swapchain<Window>>,
 
     #[derivative(Debug = "ignore")]
-    cleanup_future: Option<Box<dyn GpuFuture>>,
+    cleanup_future: Option<Box<dyn GpuFuture + Send>>,
 }
 
-impl Renderer {
-    /// Runs the provided closure for each event.
-    ///
-    /// This also performs cleanup actions.
-    pub fn poll_events<F: FnMut(Event)>(&mut self, cb: F) {
-        self.cleanup_future.as_mut().unwrap().cleanup_finished();
-        self.event_loop.poll_events(cb)
+impl System for Renderer {
+    fn run(&mut self, _cs: &ComponentStore, _dt: f32) {
+        if let Some(cleanup_future) = self.cleanup_future.as_mut() {
+            cleanup_future.cleanup_finished();
+        }
+
+        let device = self.device.clone();
+        let queue = self.queue.clone();
+        let queue_family = queue.family();
+        self.draw(|image| {
+            AutoCommandBufferBuilder::primary_one_time_submit(device, queue_family)?
+                .clear_color_image(image.clone(), ClearValue::Float([0.0, 0.0, 0.5, 1.0]))?
+                .build()
+                .map_err(From::from)
+        })
+        .unwrap_or_else(|err| error!("{:?}\n{}", err, err));
     }
 }

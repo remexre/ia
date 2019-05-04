@@ -42,45 +42,27 @@ impl ComponentStore {
 
     /// Gets a component for a given entity.
     pub fn get_component<T: Component>(&self, entity: Entity) -> Option<&T> {
-        unsafe {
-            self.components
-                .get()
-                .as_ref()
-                .unwrap()
-                .get(&TypeId::of::<T>())
-                .and_then(|vec| vec.get::<T>(entity.0.get()))
-        }
+        unsafe { self.unsafe_get_mut_component(entity) }.as_ref()
     }
 
     /// Gets a component for a given entity.
-    pub fn get_mut_component<T: Component>(&mut self, entity: Entity) -> Option<&mut T> {
+    pub fn get_mut_component<T: Component>(&mut self, entity: Entity) -> &mut Option<T> {
         unsafe { self.unsafe_get_mut_component(entity) }
-    }
-
-    /// Sets a component for a given entity.
-    pub fn set_component<T: Component>(&mut self, entity: Entity, component: T) {
-        unsafe {
-            self.components
-                .get()
-                .as_mut()
-                .unwrap()
-                .entry(TypeId::of::<T>())
-                .or_insert_with(UnsafeOptionVec::new::<T>)
-                .set(entity.0.get(), Some(component))
-        }
     }
 
     /// Removes a component from a given entity.
     pub fn remove_component<T: Component>(&mut self, entity: Entity) {
-        unsafe {
-            self.components
-                .get()
-                .as_mut()
-                .unwrap()
-                .entry(TypeId::of::<T>())
-                .or_insert_with(UnsafeOptionVec::new::<T>)
-                .set::<T>(entity.0.get(), None)
-        }
+        *self.get_mut_component::<T>(entity) = None;
+    }
+
+    /// Sets a component for a given entity.
+    pub fn set_component<T: Component>(&mut self, entity: Entity, component: T) {
+        *self.get_mut_component(entity) = Some(component);
+    }
+
+    /// Tries to remove a component from an entity.
+    pub fn take_component<T: Component>(&mut self, entity: Entity) -> Option<T> {
+        self.get_mut_component(entity).take()
     }
 
     /// Gets a component for a given entity. This is unsafe since it makes it possible to have two
@@ -88,13 +70,14 @@ impl ComponentStore {
     #[safety(
         "The references returned by calling this function with the same T must not exist at once."
     )]
-    pub unsafe fn unsafe_get_mut_component<T: Component>(&self, entity: Entity) -> Option<&mut T> {
+    pub unsafe fn unsafe_get_mut_component<T: Component>(&self, entity: Entity) -> &mut Option<T> {
         self.components
             .get()
             .as_mut()
             .unwrap()
-            .get_mut(&TypeId::of::<T>())
-            .and_then(|vec| vec.get_mut::<T>(entity.0.get()))
+            .entry(TypeId::of::<T>())
+            .or_insert_with(UnsafeOptionVec::new::<T>)
+            .get_mut::<T>(entity.0.get())
     }
 }
 

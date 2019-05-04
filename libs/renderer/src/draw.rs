@@ -11,10 +11,10 @@ use winit::Window;
 
 impl Renderer {
     /// Draws the command buffer created on the given image.
-    pub fn draw<F, T>(&mut self, cb: F) -> Result<()>
+    pub fn draw<T, F>(&mut self, cb: F) -> Result<()>
     where
-        F: FnOnce(Arc<SwapchainImage<Window>>) -> T,
-        T: 'static + CommandBuffer,
+        F: FnOnce(Arc<SwapchainImage<Window>>) -> Result<T>,
+        T: 'static + CommandBuffer + Send,
     {
         let (image_num, acquire_future) = loop {
             match acquire_next_image(self.swapchain.clone(), None) {
@@ -26,7 +26,7 @@ impl Renderer {
             }
         };
 
-        let command_buffer = cb(self.images[image_num].clone());
+        let command_buffer = cb(self.images[image_num].clone())?;
 
         let r = self
             .cleanup_future

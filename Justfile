@@ -7,7 +7,7 @@ clean:
 
 # Watches the compilation of a target.
 watch TARGET="all":
-	watchexec -cre frag,lalrpop,rs,toml,vert "just {{TARGET}}"
+	watchexec -cre frag,lalrpop,md,rs,toml,vert -i docs/book.toml -i 'docs/book/**' "just {{TARGET}}"
 
 # Runs various benchmarks.
 bench:
@@ -29,6 +29,7 @@ clippy:
 # Creates documentation.
 doc:
 	cargo doc --all
+	mdbook build docs
 # Tests in both debug and release configurations.
 test:
 	cargo test --all
@@ -61,3 +62,15 @@ fuzz-iqm:
 	mkdir -p libs/iqm/fuzz/corpus/fuzz_target_1
 	cd libs/iqm; cargo +nightly fuzz run fuzz_target_1 fuzz/corpus/fuzz_target_1 \
 		$(find ../.. -type f -name '*.iqm' | sed -r 's#/[^/]+$##' | sort | uniq)
+
+# Builds distributable artifacts to dist.
+ci-dist: doc
+	cd bins/ia && cargo build --features bundle_assets --release
+	rm -r dist
+	mkdir -p dist/docs/api
+	rsync -a target/doc/ dist/docs/api/
+	rsync -a docs/book/ dist/docs/
+	chown $(stat -c "%u:%g" Justfile) -R .
+
+# Runs tests on every commit.
+ci-tests: test test-miri

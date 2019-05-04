@@ -1,4 +1,4 @@
-use ecstasy::ComponentStore;
+use ecstasy::Engine;
 use libremexre::errors::Result;
 use log::info;
 use renderer::Renderer;
@@ -12,18 +12,29 @@ fn main() -> Result<()> {
         .verbosity(options.verbose + 1)
         .init()?;
 
-    let mut renderer = Renderer::new()?;
+    // Create an asset loader, including bundled assets.
+    // let mut asset_loader = assets::Loader::new();
+    #[cfg(feature = "bundle_assets")]
+    for file in <bundle_assets::Assets as packer::Packer>::list() {
+        println!("{:?}", file);
+    }
 
-    let mut cs = ComponentStore::new();
+    // Start the renderer.
+    let (renderer, mut event_loop) = Renderer::new()?;
+
+    // Assemble the parts into the engine.
+    let mut engine = Engine::new().build_par_pass().add(renderer).finish();
+
     let mut keep_running = true;
     while keep_running {
-        renderer.poll_events(|ev| match ev {
+        event_loop.poll_events(|ev| match ev {
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
             } => keep_running = false,
             _ => info!("TODO: Handle event {:?}", ev),
         });
+        engine.run_once();
     }
 
     Ok(())
@@ -39,3 +50,6 @@ struct Options {
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     verbose: usize,
 }
+
+#[cfg(feature = "bundle_assets")]
+mod bundle_assets;

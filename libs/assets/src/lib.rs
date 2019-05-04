@@ -1,6 +1,6 @@
 //! An asset manager.
 //!
-//! This provides components for various assets, and a central value for loading them.
+//! This provides components for various assets, and a central system for loading them.
 #![deny(
     bad_style,
     bare_trait_objects,
@@ -33,28 +33,16 @@
     while_true
 )]
 
-mod cache;
+mod loader;
+mod model;
+mod texture;
 
-use ecstasy::Component;
-use serde::{Deserialize, Serialize};
-use std::fmt::{Debug, Formatter, Result as FmtResult};
+pub use crate::{loader::Loader, model::Model, texture::Texture};
+use std::sync::Arc;
 
-/// A model.
-#[derive(Component, Deserialize, Serialize)]
-pub struct Model {}
+/// A common trait for loadable assets.
+trait Asset: 'static + Sized {
+    type Component: From<Arc<Self>>;
 
-impl Debug for Model {
-    fn fmt(&self, fmt: &mut Formatter) -> FmtResult {
-        fmt.debug_struct("Model").field("len", &()).finish()
-    }
-}
-
-/// A texture.
-#[derive(Component, Deserialize, Serialize)]
-pub struct Texture {}
-
-impl Debug for Texture {
-    fn fmt(&self, fmt: &mut Formatter) -> FmtResult {
-        fmt.debug_struct("Texture").field("len", &()).finish()
-    }
+    fn load_from(&self, bs: &[u8]) -> Option<Self>;
 }

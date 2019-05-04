@@ -1,0 +1,24 @@
+language: minimal
+os: linux
+services:
+- docker
+
+before_install:
+- docker build -t remexre/ia-builder .travis
+
+script: docker run -v "$PWD:/volume" --rm remexre/ia-builder just ci
+
+deploy:
+- provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  local-dir: dist/docs
+  keep-history: false
+  on:
+    branch: master
+- provider: releases
+  api_key: $GITHUB_TOKEN
+  file: dist/ia.tgz
+  on:
+    tags: true
+  skip_cleanup: true
