@@ -57,9 +57,11 @@ name = "assets"
 version = "0.1.0"
 dependencies = [
  "derivative 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "derive_more 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ecstasy 0.1.0",
  "image 0.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "libremexre 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.90 (registry+https://github.com/rust-lang/crates.io-index)",
  "smallvec 0.6.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "typemap 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)",

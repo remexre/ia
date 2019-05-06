@@ -1,25 +1,22 @@
 use crate::Asset;
+use derive_more::From;
 use ecstasy::Component;
 use serde::{Deserialize, Serialize};
-use std::{
-    fmt::{Debug, Formatter, Result as FmtResult},
-    sync::Arc,
-};
+use std::{error::Error, sync::Arc};
 
 /// A model.
-#[derive(Component, Deserialize, Serialize)]
-pub struct Model {}
+#[derive(Component, Debug, Deserialize, From, Serialize)]
+pub struct Model(Arc<ModelInner>);
 
 impl Asset for Model {
-    type Component = Arc<Model>;
+    type Component = Model;
+    type Inner = ModelInner;
+    type LoadFromError = Box<dyn Error>;
 
-    fn load_from(&self, _bs: &[u8]) -> Option<Model> {
+    fn load_from(_bs: &[u8]) -> Result<ModelInner, Box<dyn Error>> {
         unimplemented!()
     }
 }
 
-impl Debug for Model {
-    fn fmt(&self, fmt: &mut Formatter) -> FmtResult {
-        fmt.debug_struct("Model").field("len", &0).finish()
-    }
-}
+#[derive(Debug, Deserialize, Serialize)]
+pub struct ModelInner {}

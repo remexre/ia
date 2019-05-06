@@ -8,9 +8,11 @@ version = "0.1.0"
 
 [dependencies]
 derivative = "1.0.2"
+derive_more = "0.14.0"
 ecstasy = { path = "../ecstasy" }
 image = { default-features = false, features = ["jpeg", "png_codec"], version = "0.21.1" }
 libremexre = { default-features = false, version = "0.1.6" }
+log = "0.4.6"
 serde = "1.0.90"
 smallvec = { features = ["serde"], version = "0.6.9" }
 typemap = "0.3.3"

@@ -38,11 +38,13 @@ mod model;
 mod texture;
 
 pub use crate::{loader::Loader, model::Model, texture::Texture};
-use std::sync::Arc;
+use std::{fmt::Display, sync::Arc};
 
 /// A common trait for loadable assets.
 trait Asset: 'static + Sized {
-    type Component: From<Arc<Self>>;
+    type Component: From<Arc<Self::Inner>>;
+    type Inner;
+    type LoadFromError: Display;
 
-    fn load_from(&self, bs: &[u8]) -> Option<Self>;
+    fn load_from(bs: &[u8]) -> Result<Self::Inner, Self::LoadFromError>;
 }

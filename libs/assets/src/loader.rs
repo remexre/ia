@@ -1,6 +1,7 @@
 use crate::Asset;
 use derivative::Derivative;
 use ecstasy::{Component, ComponentStore, SystemMut};
+use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 use std::{
@@ -68,11 +69,11 @@ impl SystemMut for Loader {
             ($kind:ident as $ty:ident $body:block) => {
                 match $kind {
                     AssetKind::Model => {
-                        type $ty = CacheEntry<crate::Model>;
+                        type $ty = crate::Model;
                         $body
                     }
                     AssetKind::Texture => {
-                        type $ty = CacheEntry<crate::Texture>;
+                        type $ty = crate::Texture;
                         $body
                     }
                 }
@@ -84,6 +85,7 @@ impl SystemMut for Loader {
                 for req in reqs.0.iter_mut() {
                     // TODO: Check cache.
                     if !req.loading {
+                        debug!("Loading {}", req.path.display());
                         let _ = self
                             .file_reqs
                             .as_mut()
@@ -99,14 +101,21 @@ impl SystemMut for Loader {
             match_with!(kind as T {
                 // We check the cache again; in all likelihood, the same asset has been requested
                 // more than once at the same time.
-                let c = self.cache.entry::<T>()
-                    .or_insert_with(HashMap::new)
-                    .entry(path)
-                    .or_insert_with(|| { unimplemented!("{:?}", data) })
-                    .clone();
-                cs.iter_entities().for_each(|entity| {
-                    cs.set_component(entity, c.clone());
-                });
+                match <T as Asset>::load_from(&data) {
+                    Ok(asset) => {
+                        let c = self.cache.entry::<CacheEntry<T>>()
+                            .or_insert_with(HashMap::new)
+                            .entry(path)
+                            .or_insert_with(|| Arc::new(asset))
+                            .clone();
+                        cs.iter_entities().for_each(|entity| {
+                            cs.set_component::<<T as Asset>::Component>(entity, c.clone().into());
+                        });
+                    }
+                    Err(err) => {
+                        error!("Could not load {}: {}", path.display(), err)
+                    }
+                }
             });
         }
     }
@@ -141,5 +150,5 @@ pub struct AssetRequests(pub SmallVec<[AssetRequest; 4]>);
 struct CacheEntry<T>(PhantomData<T>);
 
 impl<T: Asset> Key for CacheEntry<T> {
-    type Value = HashMap<PathBuf, Arc<T>>;
+    type Value = HashMap<PathBuf, Arc<T::Inner>>;
 }
