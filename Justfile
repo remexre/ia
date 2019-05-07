@@ -66,7 +66,7 @@ fuzz-iqm:
 # Builds distributable artifacts to dist.
 ci-dist: doc
 	cd bins/ia && cargo build --features bundle_assets --release
-	rm -r dist
+	[ -d dist ] && rm -r dist || true
 	mkdir -p dist/docs/api
 	rsync -a target/doc/ dist/docs/api/
 	rsync -a docs/book/ dist/docs/
