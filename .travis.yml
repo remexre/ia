@@ -3,10 +3,7 @@ os: linux
 services:
 - docker
 
-before_install:
-- pwd
-- ls -la
-- docker build -t remexre/ia-builder .travis
+before_install: docker build -t remexre/ia-builder .travis
 
 script: docker run -v "$PWD:/volume" --rm remexre/ia-builder just ci-tests
 
