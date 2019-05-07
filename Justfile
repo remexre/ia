@@ -25,7 +25,7 @@ check:
 	cargo check --all
 # Checks for additional lints.
 clippy:
-	cargo clippy --all
+	cargo clippy --all-targets --all-features
 # Creates documentation.
 doc:
 	cargo doc --all

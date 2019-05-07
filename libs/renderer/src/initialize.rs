@@ -5,7 +5,7 @@ use std::sync::Arc;
 use vulkano::{
     device::{Device, DeviceExtensions, Features, Queue},
     image::SwapchainImage,
-    instance::{Instance, PhysicalDevice, PhysicalDeviceType},
+    instance::{Instance, PhysicalDevice, PhysicalDeviceType, QueueFamily},
     swapchain::{PresentMode, Surface, SurfaceTransform, Swapchain},
     sync::now,
 };
@@ -23,7 +23,7 @@ impl Renderer {
                 let mem_gb = mem_bytes >> 30;
                 let qf_count: usize = pd
                     .queue_families()
-                    .filter(|qf| qf.supports_graphics())
+                    .filter(QueueFamily::supports_graphics)
                     .map(|qf| qf.queues_count())
                     .sum();
                 let type_priority = match pd.ty() {
@@ -58,7 +58,7 @@ impl Renderer {
             .queue_families()
             .filter(|&qf| qf.supports_graphics())
             .collect::<Vec<_>>();
-        qfs.sort_by_key(|qf| qf.queues_count());
+        qfs.sort_by_key(QueueFamily::queues_count);
 
         if qfs.is_empty() {
             return Err(err!("Primary Vulkan devices had no queue families"));
@@ -73,7 +73,7 @@ impl Renderer {
         };
         let (device, queues) = Device::new(pd, &Features::none(), &device_exts, Some((qf, 0.5)))?;
 
-        let mut queues = queues.into_iter().collect::<Vec<_>>();
+        let mut queues = queues.collect::<Vec<_>>();
         if queues.is_empty() {
             return Err(err!("Primary Vulkan devices had no queues"));
         }

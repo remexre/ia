@@ -1,0 +1,11 @@
+[package]
+name = "ia-model-viewer"
+version = "0.1.0"
+authors = ["Nathan Ringo <remexre@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+assets = { path = "../../libs/assets" }
+ecstasy = { path = "../../libs/ecstasy" }
+stderrlog = "0.4.1"
+structopt = "0.2.15"

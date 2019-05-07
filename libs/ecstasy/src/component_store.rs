@@ -67,6 +67,7 @@ impl ComponentStore {
 
     /// Gets a component for a given entity. This is unsafe since it makes it possible to have two
     /// mutable references to the same component if called twice with the same T.
+    #[allow(clippy::mut_from_ref)]
     #[safety(
         "The references returned by calling this function with the same T must not exist at once."
     )]

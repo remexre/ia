@@ -1,7 +1,9 @@
 [workspace]
 members = [
 	"bins/ia",
+	"bins/ia-asset-tool",
 	"bins/ia-internal-debug-tool",
+	"bins/ia-model-viewer",
 	"libs/assets",
 	"libs/ecstasy",
 	"libs/ecstasy_proc_macros",

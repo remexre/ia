@@ -34,6 +34,12 @@ pub struct Loader {
 impl Loader {
     /// Creates a new `Loader`.
     pub fn new() -> Loader {
+        Loader::default()
+    }
+}
+
+impl Default for Loader {
+    fn default() -> Loader {
         let (file_reqs_send, file_reqs_recv) = channel();
         let (file_resps_send, file_resps_recv) = channel();
         let thread = spawn(move || {
