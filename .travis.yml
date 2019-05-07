@@ -4,10 +4,13 @@ services:
 - docker
 
 before_install:
+- pwd
+- ls -la
 - docker build -t remexre/ia-builder .travis
 
-script: docker run -v "$PWD:/volume" --rm remexre/ia-builder just ci
+script: docker run -v "$PWD:/volume" --rm remexre/ia-builder just ci-tests
 
+before_deploy: docker run -v "$PWD:/volume" --rm remexre/ia-builder just ci-dist
 deploy:
 - provider: pages
   skip-cleanup: true
