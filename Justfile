@@ -4,6 +4,7 @@ all: check clippy build-debug doc build-release test
 # Removes compilation artifacts.
 clean:
 	cargo clean
+	[[ -d dist ]]; rm -r dist
 
 # Watches the compilation of a target.
 watch TARGET="all":

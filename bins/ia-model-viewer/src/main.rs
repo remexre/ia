@@ -1,4 +1,4 @@
-use std::error::Error;
+use std::{error::Error, path::PathBuf};
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -10,6 +10,9 @@ struct Options {
     /// Increase log verbosity (-v, -vv, -vvv, etc. supported).
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     verbose: usize,
+
+    /// The file to load a model from.
+    model_file: PathBuf,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {

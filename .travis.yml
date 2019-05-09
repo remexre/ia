@@ -7,7 +7,7 @@ before_install: docker build -t remexre/ia-builder .travis
 
 script: docker run -v "$PWD:/volume" --rm remexre/ia-builder just ci-tests
 
-before_deploy: docker run -v "$PWD:/volume" --rm remexre/ia-builder just ci-dist
+before_deploy: docker run -v "$PWD:/volume" --rm remexre/ia-builder sh -c "rm ~/.cargo/config && just ci-dist"
 deploy:
 - provider: pages
   skip-cleanup: true
