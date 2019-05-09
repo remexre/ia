@@ -70,6 +70,7 @@ ci:
 	docker build -t remexre/ia-builder .travis
 	docker run -v "$(pwd):/code" --rm remexre/ia-builder just ci-tests
 	docker run -v "$(pwd):/code" --rm remexre/ia-builder just ci-dist
+	docker run -v "$(pwd):/code" --rm remexre/ia-builder just ci-fix-privileges
 
 # Builds distributable artifacts to dist.
 ci-dist: doc
@@ -78,6 +79,10 @@ ci-dist: doc
 	mkdir -p dist/docs/api
 	rsync -a target/doc/ dist/docs/api/
 	rsync -a docs/book/ dist/docs/
+
+# Sets privileges for all files to those of this Justfile.
+ci-fix-privileges:
+	chown -R $(stat -c "%u:%g" Justfile) .
 
 # Runs tests on every commit.
 ci-tests: test test-miri
