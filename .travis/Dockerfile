@@ -5,5 +5,5 @@ RUN curl -L 'https://github.com/rust-lang-nursery/mdBook/releases/download/v0.2.
 	mv /tmp/just /usr/local/bin/just && \
 	mv /tmp/mdbook /usr/local/bin/mdbook && \
 	apt-get update && \
-	apt-get install -y --no-install-recommends cmake rsync && \
+	apt-get install -y --no-install-recommends cmake python rsync && \
 	rm -rf /var/lib/apt/lists/*
