@@ -6,5 +6,7 @@ edition = "2018"
 
 [dependencies]
 iqm = { path = "../../libs/iqm" }
+libremexre = { default-features = false, version = "0.1.6" }
+shaderc = "0.5.0"
 stderrlog = "0.4.1"
 structopt = "0.2.15"
