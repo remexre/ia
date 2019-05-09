@@ -64,6 +64,13 @@ fuzz-iqm:
 	cd libs/iqm; cargo +nightly fuzz run fuzz_target_1 fuzz/corpus/fuzz_target_1 \
 		$(find ../.. -type f -name '*.iqm' | sed -r 's#/[^/]+$##' | sort | uniq)
 
+# Runs the equivalent of the CI system.
+ci:
+	docker pull rust:latest
+	docker build -t remexre/ia-builder .travis
+	docker run -v "$(pwd):/code" --rm remexre/ia-builder just ci-tests
+	docker run -v "$(pwd):/code" --rm remexre/ia-builder just ci-dist
+
 # Builds distributable artifacts to dist.
 ci-dist: doc
 	cd bins/ia && cargo build --features bundle_assets --release
@@ -71,7 +78,6 @@ ci-dist: doc
 	mkdir -p dist/docs/api
 	rsync -a target/doc/ dist/docs/api/
 	rsync -a docs/book/ dist/docs/
-	chown $(stat -c "%u:%g" Justfile) -R .
 
 # Runs tests on every commit.
 ci-tests: test test-miri
