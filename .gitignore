@@ -3,6 +3,9 @@
 !.travis/
 !.travis.yml
 
+# Shader Bundle (CBOR-based format invented here)
+*.shb
+
 dist/
 docs/book/
 target/

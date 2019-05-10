@@ -38,7 +38,12 @@ mod model;
 mod program;
 mod texture;
 
-pub use crate::{loader::Loader, model::Model, program::Program, texture::Texture};
+pub use crate::{
+    loader::Loader,
+    model::Model,
+    program::{Program, ProgramInner, ProgramSafetyPromise},
+    texture::Texture,
+};
 use std::{fmt::Display, sync::Arc};
 
 /// A common trait for loadable assets.

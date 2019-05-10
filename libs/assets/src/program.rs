@@ -5,6 +5,7 @@ use serde::{
     de::{Error as DeError, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
 };
+use serde_cbor::from_slice;
 use std::{
     error::Error,
     fmt::{Formatter, Result as FmtResult},
@@ -20,25 +21,41 @@ impl Asset for Program {
     type Inner = ProgramInner;
     type LoadFromError = Box<dyn Error>;
 
-    fn load_from(_bs: &[u8]) -> Result<ProgramInner, Box<dyn Error>> {
-        unimplemented!()
+    fn load_from(bs: &[u8]) -> Result<ProgramInner, Box<dyn Error>> {
+        from_slice(bs).map_err(|err| -> Box<dyn Error> { Box::new(err) })
     }
 }
 
+/// The actual data of a `Program`.
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ProgramInner {
-    // TODO
+    /// The bytes of the compiled vertex shader.
+    pub vert_bytes: Vec<u8>,
+
+    /// The bytes of the compiled fragment shader.
+    pub frag_bytes: Vec<u8>,
+
     /// A promise that the program is safe and correct.
     pub promise: ProgramSafetyPromise,
 }
 
 /// A promise that a SPIR-V program is safe and correct and all that.
-#[derive(Debug)]
+///
+/// ```
+/// # use serde_cbor::{from_slice, to_vec};
+/// # use assets::ProgramSafetyPromise;
+/// let promise = unsafe { ProgramSafetyPromise::i_promise() };
+/// let bs = serde_cbor::to_vec(&promise).unwrap();
+/// let promise2 = serde_cbor::from_slice(&bs).unwrap();
+/// assert_eq!(promise, promise2);
+/// ```
+#[derive(Debug, Eq, PartialEq)]
 pub struct ProgramSafetyPromise(());
 
 impl ProgramSafetyPromise {
     const STR: &'static str = "I promise this is safe!";
 
+    /// Creates a `ProgramSafetyPromise`. You promise.
     pub unsafe fn i_promise() -> ProgramSafetyPromise {
         ProgramSafetyPromise(())
     }
@@ -56,6 +73,13 @@ impl<'de> Deserialize<'de> for ProgramSafetyPromise {
 
             fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
                 formatter.write_str("the string \"I promise this is safe!\"")
+            }
+
+            fn visit_borrowed_str<E: DeError>(
+                self,
+                value: &'de str,
+            ) -> Result<ProgramSafetyPromise, E> {
+                self.visit_str(value)
             }
 
             fn visit_str<E: DeError>(self, value: &str) -> Result<ProgramSafetyPromise, E> {

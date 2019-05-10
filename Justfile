@@ -51,6 +51,9 @@ test-miri-one DIR:
 outdated-deps:
 	cargo outdated -R
 
+# Runs the asset tool.
+asset-tool +ARGS="":
+	cargo run --bin ia-asset-tool -- {{ARGS}}
 # Runs the debug tool.
 debug-tool +ARGS="":
 	cargo run --bin ia-internal-debug-tool -- {{ARGS}}
