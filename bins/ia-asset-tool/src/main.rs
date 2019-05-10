@@ -8,10 +8,7 @@ use structopt::StructOpt;
 
 fn main() -> Result<()> {
     let options = Options::from_args();
-    stderrlog::new()
-        .quiet(options.quiet)
-        .verbosity(options.verbose)
-        .init()?;
+    libremexre::init_logger(options.verbose, options.quiet);
 
     match options.subcommand {
         Subcommand::CompileShaders {

@@ -22,10 +22,7 @@ struct Options {
 
 fn main() -> Result<()> {
     let options = Options::from_args();
-    stderrlog::new()
-        .quiet(options.quiet)
-        .verbosity(options.verbose)
-        .init()?;
+    libremexre::init_logger(options.verbose, options.quiet);
 
     // Start the renderer.
     let (renderer, mut event_loop) = Renderer::new()?;

@@ -7,11 +7,10 @@ edition = "2018"
 [dependencies]
 assets = { path = "../../libs/assets" }
 ecstasy = { path = "../../libs/ecstasy" }
-libremexre = { default-features = false, version = "0.1.6" }
+libremexre = { features = ["log", "pretty_env_logger"], version = "0.1.8" }
 log = "0.4.6"
 packer = { git = "https://github.com/remexre/packer", optional = true }
 renderer = { path = "../../libs/renderer" }
-stderrlog = "0.4.1"
 structopt = "0.2.15"
 winit = "0.18.0"
 

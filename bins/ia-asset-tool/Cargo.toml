@@ -6,7 +6,6 @@ edition = "2018"
 
 [dependencies]
 iqm = { path = "../../libs/iqm" }
-libremexre = { default-features = false, version = "0.1.6" }
+libremexre = { features = ["log", "pretty_env_logger"], version = "0.1.8" }
 shaderc = "0.5.0"
-stderrlog = "0.4.1"
 structopt = "0.2.15"

@@ -7,10 +7,7 @@ use winit::{Event, WindowEvent};
 
 fn main() -> Result<()> {
     let options = Options::from_args();
-    stderrlog::new()
-        .quiet(options.quiet)
-        .verbosity(options.verbose + 1)
-        .init()?;
+    libremexre::init_logger(options.verbose + 1, options.quiet);
 
     // Create an asset loader, including bundled assets.
     // let mut asset_loader = assets::Loader::new();
@@ -27,12 +24,15 @@ fn main() -> Result<()> {
 
     let mut keep_running = true;
     while keep_running {
-        event_loop.poll_events(|ev| match ev {
-            Event::WindowEvent {
-                event: WindowEvent::CloseRequested,
-                ..
-            } => keep_running = false,
-            _ => info!("TODO: Handle event {:?}", ev),
+        event_loop.poll_events(|ev| {
+            if let Event::WindowEvent { event: ev, .. } = ev {
+                match ev {
+                    WindowEvent::CloseRequested => keep_running = false,
+                    ev => {
+                        info!("TODO: Handle event {:?}", ev);
+                    }
+                }
+            }
         });
         engine.run_once();
     }

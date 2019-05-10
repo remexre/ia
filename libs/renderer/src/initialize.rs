@@ -1,16 +1,14 @@
 use crate::Renderer;
 use libremexre::{err, errors::Result};
 use log::info;
-use std::sync::Arc;
 use vulkano::{
-    device::{Device, DeviceExtensions, Features, Queue},
-    image::SwapchainImage,
+    device::{Device, DeviceExtensions, Features},
     instance::{Instance, PhysicalDevice, PhysicalDeviceType, QueueFamily},
-    swapchain::{PresentMode, Surface, SurfaceTransform, Swapchain},
+    swapchain::{PresentMode, SurfaceTransform, Swapchain},
     sync::now,
 };
 use vulkano_win::VkSurfaceBuild;
-use winit::{EventsLoop, Window, WindowBuilder};
+use winit::{EventsLoop, WindowBuilder};
 
 impl Renderer {
     /// Creates a new `Renderer`.
@@ -85,7 +83,31 @@ impl Renderer {
             .with_title("ia")
             .build_vk_surface(&event_loop, instance.clone())?;
 
-        let (swapchain, images) = make_swapchain(surface.clone(), device.clone(), &queue)?;
+        let window = surface.window();
+        let caps = surface.capabilities(device.physical_device())?;
+        let dims = window
+            .get_inner_size()
+            .map(|dims| dims.to_physical(window.get_hidpi_factor()).into())
+            .map(|(w, h)| [w, h])
+            .or_else(|| caps.current_extent)
+            .ok_or_else(|| err!("window was closed"))?;
+        let alpha = caps.supported_composite_alpha.iter().next().unwrap();
+        let format = caps.supported_formats[0].0;
+        let (swapchain, images) = Swapchain::new(
+            device.clone(),
+            surface.clone(),
+            caps.min_image_count,
+            format,
+            dims,
+            1,
+            caps.supported_usage_flags,
+            &queue,
+            SurfaceTransform::Identity,
+            alpha,
+            PresentMode::Fifo,
+            true,
+            None,
+        )?;
 
         let cleanup_future = now(device.clone());
 
@@ -97,54 +119,11 @@ impl Renderer {
                 queue,
                 surface,
                 swapchain,
+                recreate_swapchain: false,
 
                 cleanup_future: Some(Box::new(cleanup_future)),
             },
             event_loop,
         ))
     }
-
-    /// Recreates the swapchain, to account for e.g. a new window size.
-    pub(crate) fn recreate_swapchain(&mut self) -> Result<()> {
-        let (swapchain, images) =
-            make_swapchain(self.surface.clone(), self.device.clone(), &self.queue)?;
-        self.swapchain = swapchain;
-        self.images = images;
-        Ok(())
-    }
-}
-
-/// Creates the swapchain. Defined here to share code between `Renderer::new` and
-/// `Renderer::recreate_swapchain`.
-fn make_swapchain(
-    surface: Arc<Surface<Window>>,
-    device: Arc<Device>,
-    queue: &Arc<Queue>,
-) -> Result<(Arc<Swapchain<Window>>, Vec<Arc<SwapchainImage<Window>>>)> {
-    let window = surface.window();
-    let caps = surface.capabilities(device.physical_device())?;
-    let dims = window
-        .get_inner_size()
-        .map(|dims| dims.to_physical(window.get_hidpi_factor()).into())
-        .map(|(w, h)| [w, h])
-        .or_else(|| caps.current_extent)
-        .ok_or_else(|| err!("window was closed"))?;
-    let alpha = caps.supported_composite_alpha.iter().next().unwrap();
-    let format = caps.supported_formats[0].0;
-    Swapchain::new(
-        device,
-        surface,
-        caps.min_image_count,
-        format,
-        dims,
-        1,
-        caps.supported_usage_flags,
-        queue,
-        SurfaceTransform::Identity,
-        alpha,
-        PresentMode::Fifo,
-        true,
-        None,
-    )
-    .map_err(From::from)
 }

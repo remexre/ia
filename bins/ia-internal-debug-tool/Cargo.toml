@@ -6,5 +6,5 @@ edition = "2018"
 
 [dependencies]
 iqm = { path = "../../libs/iqm" }
-stderrlog = "0.4.1"
+libremexre = { features = ["log", "pretty_env_logger"], version = "0.1.8" }
 structopt = "0.2.15"

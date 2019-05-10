@@ -1,5 +1,6 @@
 use crate::Renderer;
 use libremexre::errors::Result;
+use log::error;
 use std::sync::Arc;
 use vulkano::{
     command_buffer::CommandBuffer,
@@ -10,8 +11,19 @@ use vulkano::{
 use winit::Window;
 
 impl Renderer {
+    /// Draws the command buffer created on the given image, printing errors instead of returning
+    /// them.
+    pub fn draw<T, F>(&mut self, cb: F)
+    where
+        F: FnOnce(Arc<SwapchainImage<Window>>) -> Result<T>,
+        T: 'static + CommandBuffer + Send,
+    {
+        self.draw_inner(cb)
+            .unwrap_or_else(|err| error!("{:?}\n{}", err, err));
+    }
+
     /// Draws the command buffer created on the given image.
-    pub fn draw<T, F>(&mut self, cb: F) -> Result<()>
+    pub fn draw_inner<T, F>(&mut self, cb: F) -> Result<()>
     where
         F: FnOnce(Arc<SwapchainImage<Window>>) -> Result<T>,
         T: 'static + CommandBuffer + Send,
@@ -20,7 +32,7 @@ impl Renderer {
             match acquire_next_image(self.swapchain.clone(), None) {
                 Ok(r) => break r,
                 Err(AcquireError::OutOfDate) => {
-                    self.recreate_swapchain()?;
+                    self.recreate_swapchain = true;
                 }
                 Err(err) => return Err(Box::new(err)),
             }
@@ -43,7 +55,8 @@ impl Renderer {
             }
             Err(FlushError::OutOfDate) => {
                 self.cleanup_future = Some(Box::new(now(self.device.clone())));
-                self.recreate_swapchain()
+                self.recreate_swapchain = true;
+                Ok(())
             }
             Err(e) => {
                 self.cleanup_future = Some(Box::new(now(self.device.clone())));

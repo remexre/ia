@@ -42,10 +42,9 @@ use std::sync::Arc;
 use vulkano::{
     command_buffer::AutoCommandBufferBuilder,
     device::{Device, Queue},
-    format::ClearValue,
     image::SwapchainImage,
     instance::Instance,
-    swapchain::{Surface, Swapchain},
+    swapchain::{Surface, Swapchain, SwapchainCreationError},
     sync::GpuFuture,
 };
 use winit::Window;
@@ -61,6 +60,7 @@ pub struct Renderer {
     queue: Arc<Queue>,
     surface: Arc<Surface<Window>>,
     swapchain: Arc<Swapchain<Window>>,
+    recreate_swapchain: bool,
 
     #[derivative(Debug = "ignore")]
     cleanup_future: Option<Box<dyn GpuFuture + Send>>,
@@ -72,15 +72,36 @@ impl System for Renderer {
             cleanup_future.cleanup_finished();
         }
 
+        if self.recreate_swapchain {
+            let window = self.surface.window();
+            let dims = if let Some(dims) = window.get_inner_size() {
+                let dims: (u32, u32) = dims.to_physical(window.get_hidpi_factor()).into();
+                [dims.0, dims.1]
+            } else {
+                error!("Could not get window inner size when recreating swapchain; was the window closed?");
+                return;
+            };
+            let (swapchain, images) = match self.swapchain.recreate_with_dimension(dims) {
+                Ok(r) => r,
+                Err(SwapchainCreationError::UnsupportedDimensions) => return,
+                Err(err) => {
+                    error!("Failed to recreate swapchain: {:?} ({})", err, err);
+                    return;
+                }
+            };
+            self.swapchain = swapchain;
+            self.images = images;
+            self.recreate_swapchain = false;
+        }
+
         let device = self.device.clone();
         let queue = self.queue.clone();
         let queue_family = queue.family();
-        self.draw(|image| {
+        self.draw(|_image| {
             AutoCommandBufferBuilder::primary_one_time_submit(device, queue_family)?
-                .clear_color_image(image.clone(), ClearValue::Float([0.0, 0.0, 0.5, 1.0]))?
+                // .clear_color_image(image.clone(), ClearValue::Float([0.0, 0.0, 0.5, 1.0]))?
                 .build()
                 .map_err(From::from)
         })
-        .unwrap_or_else(|err| error!("{:?}\n{}", err, err));
     }
 }
