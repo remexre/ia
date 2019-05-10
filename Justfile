@@ -57,6 +57,9 @@ asset-tool +ARGS="":
 # Runs the debug tool.
 debug-tool +ARGS="":
 	cargo run --bin ia-internal-debug-tool -- {{ARGS}}
+# Runs the model viewer.
+model-viewer +ARGS="":
+	cargo run --bin ia-model-viewer -- {{ARGS}}
 # Runs the game itself.
 run +ARGS="":
 	cargo run --bin ia -- {{ARGS}}

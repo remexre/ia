@@ -1,3 +1,4 @@
+use assets::AssetRequestExt;
 use ecstasy::Engine;
 use libremexre::errors::Result;
 use log::info;
@@ -17,7 +18,16 @@ struct Options {
     verbose: usize,
 
     /// The file to load a model from.
+    #[structopt(short = "m", long = "model")]
     model_file: PathBuf,
+
+    /// The file to load a shader bundle from.
+    #[structopt(short = "s", long = "shaders")]
+    shader_bundle_file: PathBuf,
+
+    /// The file to load a texture from.
+    #[structopt(short = "t", long = "texture")]
+    texture_file: PathBuf,
 }
 
 fn main() -> Result<()> {
@@ -29,6 +39,18 @@ fn main() -> Result<()> {
 
     // Assemble the parts into the engine.
     let mut engine = Engine::new().build_par_pass().add(renderer).finish();
+
+    // Create the main entity.
+    let entity = engine.store.new_entity();
+    engine
+        .store
+        .request_asset::<assets::Model>(entity, options.model_file);
+    engine
+        .store
+        .request_asset::<assets::Program>(entity, options.shader_bundle_file);
+    engine
+        .store
+        .request_asset::<assets::Texture>(entity, options.texture_file);
 
     let mut keep_running = true;
     while keep_running {

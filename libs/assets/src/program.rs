@@ -1,4 +1,4 @@
-use crate::Asset;
+use crate::{asset_sealed::AssetSealed, loader::AssetKind};
 use derive_more::From;
 use ecstasy::Component;
 use serde::{
@@ -16,10 +16,11 @@ use std::{
 #[derive(Component, Debug, Deserialize, From, Serialize)]
 pub struct Program(Arc<ProgramInner>);
 
-impl Asset for Program {
+impl AssetSealed for Program {
     type Component = Program;
     type Inner = ProgramInner;
     type LoadFromError = Box<dyn Error>;
+    const KIND: AssetKind = AssetKind::Program;
 
     fn load_from(bs: &[u8]) -> Result<ProgramInner, Box<dyn Error>> {
         from_slice(bs).map_err(|err| -> Box<dyn Error> { Box::new(err) })

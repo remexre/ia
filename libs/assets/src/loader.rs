@@ -1,4 +1,4 @@
-use crate::Asset;
+use crate::asset_sealed::AssetSealed;
 use derivative::Derivative;
 use ecstasy::{Component, ComponentStore, SystemMut};
 use log::{debug, error};
@@ -78,6 +78,10 @@ impl SystemMut for Loader {
                         type $ty = crate::Model;
                         $body
                     }
+                    AssetKind::Program => {
+                        type $ty = crate::Program;
+                        $body
+                    }
                     AssetKind::Texture => {
                         type $ty = crate::Texture;
                         $body
@@ -88,17 +92,14 @@ impl SystemMut for Loader {
 
         cs.iter_entities().for_each(|entity| {
             if let Some(reqs) = cs.get_mut_component::<AssetRequests>(entity).as_mut() {
-                for req in reqs.0.iter_mut() {
+                for req in reqs.0.drain() {
                     // TODO: Check cache.
-                    if !req.loading {
-                        debug!("Loading {}", req.path.display());
-                        let _ = self
-                            .file_reqs
-                            .as_mut()
-                            .unwrap()
-                            .send((req.kind, req.path.clone()));
-                        req.loading = true;
-                    }
+                    debug!("Loading {}", req.path.display());
+                    let _ = self
+                        .file_reqs
+                        .as_mut()
+                        .unwrap()
+                        .send((req.kind, req.path.clone()));
                 }
             }
         });
@@ -107,7 +108,7 @@ impl SystemMut for Loader {
             match_with!(kind as T {
                 // We check the cache again; in all likelihood, the same asset has been requested
                 // more than once at the same time.
-                match <T as Asset>::load_from(&data) {
+                match <T as AssetSealed>::load_from(&data) {
                     Ok(asset) => {
                         let c = self.cache.entry::<CacheEntry<T>>()
                             .or_insert_with(HashMap::new)
@@ -115,7 +116,7 @@ impl SystemMut for Loader {
                             .or_insert_with(|| Arc::new(asset))
                             .clone();
                         cs.iter_entities().for_each(|entity| {
-                            cs.set_component::<<T as Asset>::Component>(entity, c.clone().into());
+                            cs.set_component::<<T as AssetSealed>::Component>(entity, c.clone().into());
                         });
                     }
                     Err(err) => {
@@ -133,6 +134,10 @@ pub enum AssetKind {
     /// A model, loaded as an IQM file.
     Model,
 
+    /// A shader bundle, loaded as the in-house SHB format (which is a `serde_cbor` serialization
+    /// of the `Program` struct).
+    Program,
+
     /// A texture, loaded as a JPEG or PNG.
     Texture,
 }
@@ -142,11 +147,10 @@ pub enum AssetKind {
 pub struct AssetRequest {
     pub kind: AssetKind,
     pub path: PathBuf,
-    pub loading: bool,
 }
 
 /// A `Component` for `AssetRequest`s.
-#[derive(Component, Debug, Deserialize, Serialize)]
+#[derive(Component, Debug, Default, Deserialize, Serialize)]
 pub struct AssetRequests(pub SmallVec<[AssetRequest; 4]>);
 // TODO(perf): The maximum capacity in practice would be a fine thing to measure; I'd be shocked if
 // it were >8, and mildly surprised if it were >4. I think it'd be fine to decrease this to 2 in
@@ -155,6 +159,6 @@ pub struct AssetRequests(pub SmallVec<[AssetRequest; 4]>);
 
 struct CacheEntry<T>(PhantomData<T>);
 
-impl<T: Asset> Key for CacheEntry<T> {
+impl<T: AssetSealed> Key for CacheEntry<T> {
     type Value = HashMap<PathBuf, Arc<T::Inner>>;
 }

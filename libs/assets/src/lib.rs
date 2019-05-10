@@ -38,19 +38,53 @@ mod model;
 mod program;
 mod texture;
 
+use crate::{
+    asset_sealed::AssetSealed,
+    loader::{AssetRequest, AssetRequests},
+};
 pub use crate::{
     loader::Loader,
     model::Model,
     program::{Program, ProgramInner, ProgramSafetyPromise},
     texture::Texture,
 };
-use std::{fmt::Display, sync::Arc};
+use ecstasy::{ComponentStore, Entity};
+use std::path::PathBuf;
+
+mod asset_sealed {
+    use crate::loader::AssetKind;
+    use std::{fmt::Display, sync::Arc};
+
+    pub trait AssetSealed: 'static + Sized {
+        type Component: From<Arc<Self::Inner>>;
+        type Inner;
+        type LoadFromError: Display;
+
+        const KIND: AssetKind;
+
+        fn load_from(bs: &[u8]) -> Result<Self::Inner, Self::LoadFromError>;
+    }
+}
 
 /// A common trait for loadable assets.
-trait Asset: 'static + Sized {
-    type Component: From<Arc<Self::Inner>>;
-    type Inner;
-    type LoadFromError: Display;
+pub trait Asset: AssetSealed {}
 
-    fn load_from(bs: &[u8]) -> Result<Self::Inner, Self::LoadFromError>;
+impl<T: AssetSealed> Asset for T {}
+
+/// An extension trait for requesting an asset.
+pub trait AssetRequestExt {
+    /// Inserts a request for an asset by path.
+    fn request_asset<T: Asset>(&mut self, entity: Entity, path: PathBuf);
+}
+
+impl AssetRequestExt for ComponentStore {
+    fn request_asset<T: Asset>(&mut self, entity: Entity, path: PathBuf) {
+        self.get_mut_component::<AssetRequests>(entity)
+            .get_or_insert_with(AssetRequests::default)
+            .0
+            .push(AssetRequest {
+                kind: T::KIND,
+                path,
+            })
+    }
 }
