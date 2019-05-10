@@ -46,6 +46,7 @@ pub struct ProgramInner {
 /// # use assets::ProgramSafetyPromise;
 /// let promise = unsafe { ProgramSafetyPromise::i_promise() };
 /// let bs = serde_cbor::to_vec(&promise).unwrap();
+/// assert_eq!(bs, b"\x77I promise this is safe!");
 /// let promise2 = serde_cbor::from_slice(&bs).unwrap();
 /// assert_eq!(promise, promise2);
 /// ```
@@ -71,8 +72,8 @@ impl<'de> Deserialize<'de> for ProgramSafetyPromise {
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = ProgramSafetyPromise;
 
-            fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
-                formatter.write_str("the string \"I promise this is safe!\"")
+            fn expecting(&self, fmt: &mut Formatter) -> FmtResult {
+                write!(fmt, "the string \"{}\"", ProgramSafetyPromise::STR)
             }
 
             fn visit_borrowed_str<E: DeError>(
