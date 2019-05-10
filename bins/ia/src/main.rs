@@ -1,7 +1,7 @@
 use ecstasy::Engine;
 use libremexre::errors::Result;
 use log::info;
-use renderer::Renderer;
+use renderer::init_renderer;
 use structopt::StructOpt;
 use winit::{Event, WindowEvent};
 
@@ -17,7 +17,7 @@ fn main() -> Result<()> {
     }
 
     // Start the renderer.
-    let (renderer, mut event_loop) = Renderer::new()?;
+    let (renderer, mut event_loop) = init_renderer!()?;
 
     // Assemble the parts into the engine.
     let mut engine = Engine::new().build_par_pass().add(renderer).finish();

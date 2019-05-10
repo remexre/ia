@@ -1,9 +1,12 @@
 use crate::Renderer;
 use libremexre::{err, errors::Result};
 use log::info;
+use std::borrow::Cow;
 use vulkano::{
     device::{Device, DeviceExtensions, Features},
-    instance::{Instance, PhysicalDevice, PhysicalDeviceType, QueueFamily},
+    instance::{
+        ApplicationInfo, Instance, PhysicalDevice, PhysicalDeviceType, QueueFamily, Version,
+    },
     swapchain::{PresentMode, SurfaceTransform, Swapchain},
     sync::now,
 };
@@ -11,9 +14,26 @@ use vulkano_win::VkSurfaceBuild;
 use winit::{EventsLoop, WindowBuilder};
 
 impl Renderer {
-    /// Creates a new `Renderer`.
-    pub fn new() -> Result<(Renderer, EventsLoop)> {
-        let instance = Instance::new(None, &vulkano_win::required_extensions(), None)?;
+    /// Creates a new `Renderer` with the given application name and version.
+    pub fn new(
+        name: Option<&str>,
+        version: Option<(u16, u16, u16)>,
+    ) -> Result<(Renderer, EventsLoop)> {
+        let app_info = ApplicationInfo {
+            application_name: name.map(Cow::Borrowed),
+            application_version: version.map(|(major, minor, patch)| Version {
+                major,
+                minor,
+                patch,
+            }),
+            engine_name: Some(Cow::Borrowed("ia-renderer")),
+            engine_version: Some(Version {
+                major: env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(),
+                minor: env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),
+                patch: env!("CARGO_PKG_VERSION_PATCH").parse().unwrap(),
+            }),
+        };
+        let instance = Instance::new(Some(&app_info), &vulkano_win::required_extensions(), None)?;
 
         let mut pds = PhysicalDevice::enumerate(&instance)
             .map(|pd| {
@@ -126,4 +146,19 @@ impl Renderer {
             event_loop,
         ))
     }
+}
+
+#[macro_export]
+/// Creates a `Renderer` with the application name and version set from the Cargo metadata.
+macro_rules! init_renderer {
+    () => {
+        renderer::Renderer::new(
+            Some(env!("CARGO_PKG_NAME")),
+            Some((
+                env!("CARGO_PKG_VERSION_MAJOR").parse().unwrap(),
+                env!("CARGO_PKG_VERSION_MINOR").parse().unwrap(),
+                env!("CARGO_PKG_VERSION_PATCH").parse().unwrap(),
+            )),
+        )
+    };
 }
