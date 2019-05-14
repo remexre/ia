@@ -8,16 +8,12 @@ version = "0.1.0"
 
 [dependencies]
 bincode = "1.1.3"
-derivative = "1.0.2"
 derive_more = "0.14.0"
-ecstasy = { path = "../ecstasy" }
 image = { default-features = false, features = ["jpeg", "png_codec"], version = "0.21.1" }
-libremexre = "0.1.8"
+libremexre = "0.1.9"
 log = "0.4.6"
 serde = "1.0.90"
-smallvec = { features = ["serde"], version = "0.6.9" }
-typemap = "0.3.3"
-typetag = "0.1.2"
+vulkano = "0.11.1"
 zstd = "0.4.24+zstd.1.4.0"
 
 [features]

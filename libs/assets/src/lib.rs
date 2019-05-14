@@ -1,6 +1,6 @@
 //! An asset manager.
 //!
-//! This provides components for various assets, and a central system for loading them.
+//! This provides a store of various assets.
 #![deny(
     bad_style,
     bare_trait_objects,
@@ -34,58 +34,67 @@
 )]
 
 pub mod irb;
-mod loader;
 mod model;
-mod program;
-mod texture;
 
-use crate::{
-    asset_sealed::AssetSealed,
-    loader::{AssetRequest, AssetRequests},
-};
-pub use crate::{
-    loader::Loader,
-    model::Model,
-    program::{Program, ProgramInner, ProgramSafetyPromise},
-    texture::Texture,
-};
-use ecstasy::{ComponentStore, Entity};
-use std::path::PathBuf;
+use crate::irb::{IRBAsset, IRB};
+pub use crate::model::Model;
+use derive_more::Index;
+use libremexre::errors::Result;
+use std::{collections::BTreeMap, error::Error, sync::Arc};
+use vulkano::{device::Device, pipeline::shader::ShaderModule};
 
-mod asset_sealed {
-    use crate::loader::AssetKind;
-    use std::{fmt::Display, sync::Arc};
+/// The assets loaded from an `IRB`.
+#[derive(Debug, Index)]
+pub struct Assets {
+    assets: BTreeMap<String, Arc<Asset>>,
+}
 
-    pub trait AssetSealed: 'static + Sized {
-        type Component: From<Arc<Self::Inner>>;
-        type Inner;
-        type LoadFromError: Display;
-
-        const KIND: AssetKind;
-
-        fn load_from(bs: &[u8]) -> Result<Self::Inner, Self::LoadFromError>;
+impl Assets {
+    /// Loads assets from an `IRB`, instantiating them on the given Vulkan device. Assets that fail
+    /// to load will not be present in the `Assets` object, and will instead produce errors.
+    pub fn from_irb(
+        irb: IRB,
+        device: Arc<Device>,
+    ) -> (Assets, Vec<Box<dyn Error + Send + Sync + 'static>>) {
+        let mut assets = BTreeMap::new();
+        let mut errs = Vec::new();
+        for (name, asset) in irb.assets {
+            match Asset::from_irb(asset, &device) {
+                Ok(asset) => {
+                    let _ = assets.insert(name, Arc::new(asset));
+                }
+                Err(err) => errs.push(err),
+            }
+        }
+        (Assets { assets }, errs)
     }
 }
 
-/// A common trait for loadable assets.
-pub trait Asset: AssetSealed {}
+/// A single asset.
+#[derive(Clone, Debug)]
+pub enum Asset {
+    /// A fragment shader.
+    FragmentShader(Vec<u8>, Arc<ShaderModule>),
 
-impl<T: AssetSealed> Asset for T {}
+    /// A model.
+    Model(Model),
 
-/// An extension trait for requesting an asset.
-pub trait AssetRequestExt {
-    /// Inserts a request for an asset by path.
-    fn request_asset<T: Asset>(&mut self, entity: Entity, path: PathBuf);
+    /// A vertex shader.
+    VertexShader(Vec<u8>, Arc<ShaderModule>),
 }
 
-impl AssetRequestExt for ComponentStore {
-    fn request_asset<T: Asset>(&mut self, entity: Entity, path: PathBuf) {
-        self.get_mut_component::<AssetRequests>(entity)
-            .get_or_insert_with(AssetRequests::default)
-            .0
-            .push(AssetRequest {
-                kind: T::KIND,
-                path,
-            })
+impl Asset {
+    fn from_irb(asset: IRBAsset, device: &Arc<Device>) -> Result<Asset> {
+        Ok(match asset {
+            IRBAsset::FragmentShader(spirv) => {
+                let sm = unsafe { ShaderModule::new(device.clone(), &spirv)? };
+                Asset::FragmentShader(spirv, sm)
+            }
+            IRBAsset::Model(model) => Asset::Model(model),
+            IRBAsset::VertexShader(spirv) => {
+                let sm = unsafe { ShaderModule::new(device.clone(), &spirv)? };
+                Asset::VertexShader(spirv, sm)
+            }
+        })
     }
 }

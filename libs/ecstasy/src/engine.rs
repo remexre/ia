@@ -18,6 +18,12 @@ pub struct Engine<P: SystemMut> {
 impl Engine<Hlist![]> {
     /// Creates an engine with no systems.
     pub fn new() -> Engine<Hlist![]> {
+        Engine::default()
+    }
+}
+
+impl Default for Engine<Hlist![]> {
+    fn default() -> Engine<Hlist![]> {
         Engine {
             store: ComponentStore::new(),
             last_frame: Instant::now(),

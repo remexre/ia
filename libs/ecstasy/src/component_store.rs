@@ -13,10 +13,7 @@ pub struct ComponentStore {
 impl ComponentStore {
     /// Creates a new, empty ComponentStore.
     pub fn new() -> ComponentStore {
-        ComponentStore {
-            components: UnsafeCell::new(HashMap::new()),
-            next_entity: 1,
-        }
+        ComponentStore::default()
     }
 
     /// Returns an iterator over all entities.
@@ -79,6 +76,15 @@ impl ComponentStore {
             .entry(TypeId::of::<T>())
             .or_insert_with(UnsafeOptionVec::new::<T>)
             .get_mut::<T>(entity.0.get())
+    }
+}
+
+impl Default for ComponentStore {
+    fn default() -> ComponentStore {
+        ComponentStore {
+            components: UnsafeCell::new(HashMap::new()),
+            next_entity: 1,
+        }
     }
 }
 

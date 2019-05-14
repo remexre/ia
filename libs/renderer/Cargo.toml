@@ -10,7 +10,7 @@ version = "0.1.0"
 assets = { path = "../assets" }
 derivative = "1.0.2"
 ecstasy = { path = "../ecstasy" }
-libremexre = "0.1.8"
+libremexre = "0.1.9"
 log = "0.4.6"
 serde = { version = "1.0.90", features = ["rc"] }
 typetag = "0.1.2"

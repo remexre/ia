@@ -1,16 +1,16 @@
 //! The Ia Resource Bundle file format.
 
-use crate::Model;
-use libremexre::errors::Result;
+use crate::{Asset, Assets, Model};
+use libremexre::{errors::Result, unwrap_arc};
 use serde::{Deserialize, Serialize};
-use std::{borrow::Borrow, collections::BTreeMap, fs::File, io::Cursor, ops::Index, path::Path};
+use std::{collections::BTreeMap, fs::File, io::Cursor, path::Path};
 
 /// The data in an IRB file.
 ///
-/// This struct is bincode'd and zstd'd before being written to disk, but this is the data inside.
+/// This struct is bincode'd and zstd'd before being written to disk.
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct IRB {
-    assets: BTreeMap<String, ()>,
+    pub(crate) assets: BTreeMap<String, IRBAsset>,
 }
 
 impl IRB {
@@ -41,20 +41,31 @@ impl IRB {
     }
 }
 
-impl<'a, T: Ord> Index<&'a T> for IRB
-where
-    String: Borrow<T>,
-{
-    type Output = ();
-
-    fn index(&self, key: &'a T) -> &() {
-        self.assets.index(key)
+impl From<Assets> for IRB {
+    fn from(assets: Assets) -> IRB {
+        let assets = assets
+            .assets
+            .into_iter()
+            .map(|(k, v)| (k, unwrap_arc(v).into()))
+            .collect();
+        IRB { assets }
     }
 }
 
 /// An asset in an IRB file.
-#[derive(Debug, Default, Deserialize, Serialize)]
-pub enum Asset {
-    /// A model.
+#[derive(Debug, Deserialize, Serialize)]
+pub(crate) enum IRBAsset {
+    FragmentShader(Vec<u8>),
     Model(Model),
+    VertexShader(Vec<u8>),
+}
+
+impl From<Asset> for IRBAsset {
+    fn from(asset: Asset) -> IRBAsset {
+        match asset {
+            Asset::FragmentShader(spirv, _) => IRBAsset::FragmentShader(spirv),
+            Asset::Model(model) => IRBAsset::Model(model),
+            Asset::VertexShader(spirv, _) => IRBAsset::VertexShader(spirv),
+        }
+    }
 }

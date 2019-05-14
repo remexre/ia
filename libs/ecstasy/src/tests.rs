@@ -1,3 +1,5 @@
+#![allow(clippy::blacklisted_name)]
+
 use crate::{
     components::{Name, Position},
     Component, ComponentStore,

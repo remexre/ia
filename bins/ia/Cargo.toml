@@ -1,13 +1,13 @@
 [package]
 name = "ia"
 version = "0.1.0"
-authors = ["Nathan Ringo <remexre@gmail.com>"]
+authors = ["Nathan Ringo <remexre@protonmail.com>"]
 edition = "2018"
 
 [dependencies]
 assets = { path = "../../libs/assets" }
 ecstasy = { path = "../../libs/ecstasy" }
-libremexre = { features = ["log", "pretty_env_logger"], version = "0.1.8" }
+libremexre = { features = ["log", "pretty_env_logger"], version = "0.1.9" }
 log = "0.4.6"
 packer = { git = "https://github.com/remexre/packer", optional = true }
 renderer = { path = "../../libs/renderer" }

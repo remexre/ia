@@ -1,10 +1,10 @@
 [package]
 name = "ia-internal-debug-tool"
 version = "0.1.0"
-authors = ["Nathan Ringo <remexre@gmail.com>"]
+authors = ["Nathan Ringo <remexre@protonmail.com>"]
 edition = "2018"
 
 [dependencies]
 iqm = { path = "../../libs/iqm" }
-libremexre = { features = ["log", "pretty_env_logger"], version = "0.1.8" }
+libremexre = { features = ["log", "pretty_env_logger"], version = "0.1.9" }
 structopt = "0.2.15"
