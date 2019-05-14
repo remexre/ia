@@ -1,0 +1,13 @@
+[package]
+authors = ["Nathan Ringo <remexre@protonmail.com>"]
+description = "Serde support for S-Expressions."
+license = "Apache-2.0/MIT"
+edition = "2018"
+name = "serde_sexpr"
+version = "0.1.0"
+
+[dependencies]
+derivative = "1.0.2"
+libremexre = "0.1.9"
+nom = "4.2.3"
+serde = "1.0.90"

@@ -1,4 +1,4 @@
-use assets::{Program, ProgramInner, ProgramSafetyPromise};
+// use assets::{Program, ProgramInner, ProgramSafetyPromise};
 use libremexre::{catch, err, errors::Result};
 use log::{error, warn};
 use serde_cbor::to_vec;
@@ -52,6 +52,8 @@ fn main() -> Result<()> {
                 Err(err) => return Err(Box::new(err)),
             };
 
+            unimplemented!();
+            /*
             let program = Program::from(Arc::new(ProgramInner {
                 vert_bytes: vs.as_binary_u8().to_owned(),
                 frag_bytes: fs.as_binary_u8().to_owned(),
@@ -59,6 +61,7 @@ fn main() -> Result<()> {
             }));
             let bundle = to_vec(&program)?;
             write(shader_bundle, &bundle)?;
+            */
 
             if vs.get_num_warnings() > 0 {
                 warn!("{}", vs.get_warning_messages());

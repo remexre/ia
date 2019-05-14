@@ -1,4 +1,3 @@
-use assets::AssetRequestExt;
 use ecstasy::Engine;
 use libremexre::errors::Result;
 use log::info;
@@ -40,6 +39,7 @@ fn main() -> Result<()> {
     // Assemble the parts into the engine.
     let mut engine = Engine::new().build_par_pass().add(renderer).finish();
 
+    /*
     // Create the main entity.
     let entity = engine.store.new_entity();
     engine
@@ -51,6 +51,7 @@ fn main() -> Result<()> {
     engine
         .store
         .request_asset::<assets::Texture>(entity, options.texture_file);
+        */
 
     let mut keep_running = true;
     while keep_running {

@@ -35,9 +35,10 @@
 
 pub mod irb;
 mod model;
+mod texture;
 
 use crate::irb::{IRBAsset, IRB};
-pub use crate::model::Model;
+pub use crate::{model::Model, texture::Texture};
 use derive_more::Index;
 use libremexre::errors::Result;
 use std::{collections::BTreeMap, error::Error, sync::Arc};

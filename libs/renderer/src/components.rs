@@ -16,5 +16,6 @@ pub struct Render3D {
     pub model: Arc<Model>,
 
     /// The texture that will be used to render.
+    #[serde(skip)]
     pub texture: Option<Arc<Texture>>,
 }
