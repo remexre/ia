@@ -118,8 +118,6 @@ pub use crate::{
     engine::{Engine, EnginePassBuilder},
 };
 pub use ecstasy_proc_macros::{system, system_mut, Component};
-#[doc(hidden)]
-pub use frunk as __frunk;
 use std::{fmt::Debug, num::NonZeroUsize};
 
 /// An entity.

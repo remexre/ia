@@ -83,8 +83,8 @@ ci-dist: doc
 	cd bins/ia && cargo build --features bundle_assets --release
 	[ -d dist ] && rm -r dist || true
 	mkdir -p dist/docs/api
-	rsync -a target/doc/ dist/docs/api/
 	rsync -a docs/book/ dist/docs/
+	rsync -a target/doc/ dist/docs/api/
 
 # Sets privileges for all files to those of this Justfile.
 ci-fix-privileges:

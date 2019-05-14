@@ -33,6 +33,7 @@
     while_true
 )]
 
+pub mod irb;
 mod loader;
 mod model;
 mod program;

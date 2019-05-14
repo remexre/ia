@@ -1,11 +1,11 @@
 use crate::{asset_sealed::AssetSealed, loader::AssetKind};
+use bincode::deserialize;
 use derive_more::From;
 use ecstasy::Component;
 use serde::{
     de::{Error as DeError, Unexpected},
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use serde_cbor::from_slice;
 use std::{
     error::Error,
     fmt::{Formatter, Result as FmtResult},
@@ -23,7 +23,7 @@ impl AssetSealed for Program {
     const KIND: AssetKind = AssetKind::Program;
 
     fn load_from(bs: &[u8]) -> Result<ProgramInner, Box<dyn Error>> {
-        from_slice(bs).map_err(|err| -> Box<dyn Error> { Box::new(err) })
+        deserialize(bs).map_err(|err| -> Box<dyn Error> { Box::new(err) })
     }
 }
 
@@ -43,12 +43,12 @@ pub struct ProgramInner {
 /// A promise that a SPIR-V program is safe and correct and all that.
 ///
 /// ```
-/// # use serde_cbor::{from_slice, to_vec};
 /// # use assets::ProgramSafetyPromise;
+/// # use bincode::{deserialize, serialize};
 /// let promise = unsafe { ProgramSafetyPromise::i_promise() };
-/// let bs = serde_cbor::to_vec(&promise).unwrap();
-/// assert_eq!(bs, b"\x77I promise this is safe!");
-/// let promise2 = serde_cbor::from_slice(&bs).unwrap();
+/// let bs = serialize(&promise).unwrap();
+/// assert_eq!(bs, b"\x17\x00\x00\x00\x00\x00\x00\x00I promise this is safe!");
+/// let promise2 = deserialize(&bs).unwrap();
 /// assert_eq!(promise, promise2);
 /// ```
 #[derive(Debug, Eq, PartialEq)]
