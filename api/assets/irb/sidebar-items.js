@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["IRB","The data in an IRB file."]]});

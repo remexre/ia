@@ -1,0 +1,1 @@
+initSidebarItems({"attr":[["system","Creates an `ecstasy::System` from a function. See the `ecstasy` crate for an example."],["system_mut","Creates an `ecstasy::SystemMut` from a function. See the `ecstasy` crate for an example."]],"derive":[["Component",""]]});

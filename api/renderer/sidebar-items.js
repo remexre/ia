@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["init_renderer","Creates a `Renderer` with the application name and version set from the Cargo metadata."]],"mod":[["components","Components used by the renderer."]],"struct":[["Renderer","The main renderer value."]]});

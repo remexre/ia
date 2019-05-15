@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Asset","A single asset."]],"mod":[["irb","The Ia Resource Bundle file format."]],"struct":[["Assets","The assets loaded from an `IRB`."],["Model","A model."],["Texture","A texture."]]});

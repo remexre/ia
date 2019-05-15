@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Error","An error while deserializing."],["Value","An s-expression."]],"struct":[["Deserializer","A deserializer for S-Expressions."],["Serializer","A serializer for S-Expressions."]],"type":[["Result","A convenient alias for `Result`."]]});

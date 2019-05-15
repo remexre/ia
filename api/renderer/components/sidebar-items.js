@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["LongDistanceDraw","This changes the maximum draw radius from the default to the given value."],["Render3D","Renders a mesh with an optional texture."]]});

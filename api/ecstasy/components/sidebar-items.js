@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["DebugFlag","A dataless debug flag."],["Name","The name of the entity."],["Position","The position of the entity."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["IQM","The data stored within an IQM file."],["Mesh","A single mesh."]]});

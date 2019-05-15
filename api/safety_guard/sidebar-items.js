@@ -1,0 +1,1 @@
+initSidebarItems({"attr":[["safety","Adds a `# Safety` section to the documentation of the function and tests the given constraints in debug builds."]]});

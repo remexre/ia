@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Decoder","An in-memory decoder for streams of data."],["Encoder","An in-memory encoder for streams of data."],["NoOp","Dummy operation that just copies its input to the output."],["Status","Describes the result of an operation."]],"trait":[["Operation","Represents an abstract compression/decompression operation."]]});

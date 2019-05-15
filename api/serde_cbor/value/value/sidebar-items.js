@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["ObjectKey","A simplified CBOR value containing only types useful for keys."],["Value","An enum over all possible CBOR types."]],"fn":[["from_value","Convert a `serde_cbor::Value` into a type `T`"]]});
