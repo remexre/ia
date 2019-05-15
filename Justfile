@@ -69,6 +69,10 @@ fuzz-iqm:
 	mkdir -p libs/iqm/fuzz/corpus/fuzz_target_1
 	cd libs/iqm; cargo +nightly fuzz run fuzz_target_1 fuzz/corpus/fuzz_target_1 \
 		$(find ../.. -type f -name '*.iqm' | sed -r 's#/[^/]+$##' | sort | uniq)
+# Fuzzes serde_sexpr's parser.
+fuzz-serde_sexpr:
+	mkdir -p libs/serde_sexpr/fuzz/corpus/fuzz_target_1
+	cd libs/serde_sexpr; cargo +nightly fuzz run fuzz_target_1 fuzz/corpus/fuzz_target_1
 
 # Runs the equivalent of the CI system.
 ci:

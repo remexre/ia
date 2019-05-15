@@ -33,7 +33,10 @@
 
 mod de;
 mod error;
+mod parser;
 mod ser;
+#[cfg(test)]
+mod tests;
 
 pub use crate::{
     de::Deserializer,
@@ -70,7 +73,7 @@ impl Display for Value {
                 write!(fmt, ")")
             }
             Value::Sym(s) => {
-                if s.chars().any(needs_quoting) {
+                if s.chars().any(needs_quoting) || s.is_empty() {
                     write!(fmt, "|")?;
                     for ch in s.chars() {
                         let prefix = if needs_quoting(ch) { "\\" } else { "" };
