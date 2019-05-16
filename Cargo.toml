@@ -9,5 +9,4 @@ members = [
 	"libs/ecstasy_proc_macros",
 	"libs/iqm",
 	"libs/renderer",
-	"libs/serde_sexpr",
 ]

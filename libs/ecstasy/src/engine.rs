@@ -1,4 +1,5 @@
 use crate::{ComponentStore, System, SystemMut};
+use assets::Assets;
 use frunk::{hlist, Hlist};
 use std::time::Instant;
 
@@ -8,6 +9,9 @@ type BoxedEngine = Engine<Box<dyn SystemMut>>;
 /// Wraps a `ComponentStore` and several systems.
 #[derive(Debug)]
 pub struct Engine<P: SystemMut> {
+    /// The `Assets` stored in the engine.
+    pub assets: Assets,
+
     /// The `ComponentStore` being wrapped.
     pub store: ComponentStore,
 
@@ -17,14 +21,9 @@ pub struct Engine<P: SystemMut> {
 
 impl Engine<Hlist![]> {
     /// Creates an engine with no systems.
-    pub fn new() -> Engine<Hlist![]> {
-        Engine::default()
-    }
-}
-
-impl Default for Engine<Hlist![]> {
-    fn default() -> Engine<Hlist![]> {
+    pub fn new(assets: Assets) -> Engine<Hlist![]> {
         Engine {
+            assets,
             store: ComponentStore::new(),
             last_frame: Instant::now(),
             passes: hlist![],
@@ -49,6 +48,7 @@ impl<P: SystemMut> Engine<P> {
     /// Maps the `passes` variable.
     fn map_passes<F: FnOnce(P) -> T, T: SystemMut>(self, func: F) -> Engine<T> {
         Engine {
+            assets: self.assets,
             store: self.store,
             last_frame: self.last_frame,
             passes: func(self.passes),

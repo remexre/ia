@@ -10,6 +10,6 @@ iqm = { path = "../../libs/iqm" }
 libremexre = { features = ["log", "pretty_env_logger"], version = "0.1.9" }
 log = "0.4.6"
 serde_cbor = "0.9.0"
-serde_sexpr = { path = "../../libs/serde_sexpr" }
+serde_sexpr = "0.1.0"
 shaderc = "0.5.0"
 structopt = "0.2.15"
