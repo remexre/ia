@@ -80,7 +80,7 @@
     improper_ctypes,
     legacy_directory_ownership,
     missing_debug_implementations,
-    // missing_docs,
+    missing_docs,
     no_mangle_generic_items,
     non_shorthand_field_patterns,
     overflowing_literals,
