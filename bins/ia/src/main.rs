@@ -1,3 +1,4 @@
+use assets::{irb::IRB, Assets};
 use ecstasy::Engine;
 use libremexre::errors::Result;
 use log::info;
@@ -9,18 +10,18 @@ fn main() -> Result<()> {
     let options = Options::from_args();
     libremexre::init_logger(options.verbose + 1, options.quiet);
 
-    // Create an asset loader, including bundled assets.
-    // let mut asset_loader = assets::Loader::new();
-    #[cfg(feature = "bundle_assets")]
-    for file in <bundle_assets::Assets as packer::Packer>::list() {
-        println!("{:?}", file);
-    }
-
-    // Start the renderer.
+    // Start the renderer, load the assets, and assemble the parts into the engine.
     let (renderer, mut event_loop) = init_renderer!()?;
-
-    // Assemble the parts into the engine.
-    let mut engine = Engine::new().build_par_pass().add(renderer).finish();
+    let (assets, errs) = Assets::from_irb(IRB::load_from_file("")?, renderer.device());
+    if !errs.is_empty() {
+        let mut s = "Errors loading assets:".to_string();
+        for err in errs {
+            s += "\n";
+            s += &err.to_string();
+        }
+        return Err(libremexre::err!("{}", s));
+    }
+    let mut engine = Engine::new(assets).build_par_pass().add(renderer).finish();
 
     let mut keep_running = true;
     while keep_running {
@@ -50,6 +51,3 @@ struct Options {
     #[structopt(short = "v", long = "verbose", parse(from_occurrences))]
     verbose: usize,
 }
-
-#[cfg(feature = "bundle_assets")]
-mod bundle_assets;

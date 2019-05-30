@@ -1,3 +1,4 @@
+use assets::Assets;
 use criterion::{criterion_group, criterion_main, Criterion};
 use ecstasy::{
     components::{DebugFlag, Name, Position},
@@ -22,7 +23,10 @@ fn noop_mut_args(_e: Entity, _dt: f32, _: &mut DebugFlag, _: &mut Position) {
 
 fn noop_system(c: &mut Criterion) {
     c.bench_function("running a no-op System on 10k entities", |b| {
-        let mut engine = Engine::new().build_par_pass().add(noop).finish();
+        let mut engine = Engine::new(Assets::default())
+            .build_par_pass()
+            .add(noop)
+            .finish();
         for _ in 0..10000 {
             let e = engine.store.new_entity();
             engine.store.set_component(e, Name(format!("{:?}", e)));
@@ -31,7 +35,7 @@ fn noop_system(c: &mut Criterion) {
     });
 
     c.bench_function("running a no-op SystemMut on 10k entities", |b| {
-        let mut engine = Engine::new().add_mut_pass(noop_mut);
+        let mut engine = Engine::new(Assets::default()).add_mut_pass(noop_mut);
         for _ in 0..10000 {
             engine.store.new_entity();
         }
@@ -39,7 +43,10 @@ fn noop_system(c: &mut Criterion) {
     });
 
     c.bench_function("running a no-op System with args on 10k entities", |b| {
-        let mut engine = Engine::new().build_par_pass().add(noop_args).finish();
+        let mut engine = Engine::new(Assets::default())
+            .build_par_pass()
+            .add(noop_args)
+            .finish();
         for _ in 0..10000 {
             let e = engine.store.new_entity();
             engine.store.set_component(e, Name(format!("{:?}", e)));
@@ -48,7 +55,7 @@ fn noop_system(c: &mut Criterion) {
     });
 
     c.bench_function("running a no-op SystemMut with args on 10k entities", |b| {
-        let mut engine = Engine::new().add_mut_pass(noop_mut_args);
+        let mut engine = Engine::new(Assets::default()).add_mut_pass(noop_mut_args);
         for _ in 0..10000 {
             engine.store.new_entity();
         }

@@ -66,6 +66,13 @@ pub struct Renderer {
     cleanup_future: Option<Box<dyn GpuFuture + Send>>,
 }
 
+impl Renderer {
+    /// Returns the Vulkan device being rendered to.
+    pub fn device(&self) -> Arc<Device> {
+        self.device.clone()
+    }
+}
+
 impl System for Renderer {
     fn run(&mut self, _cs: &ComponentStore, _dt: f32) {
         if let Some(cleanup_future) = self.cleanup_future.as_mut() {

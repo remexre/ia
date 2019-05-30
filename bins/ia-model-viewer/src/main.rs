@@ -1,3 +1,4 @@
+use assets::Assets;
 use ecstasy::Engine;
 use libremexre::errors::Result;
 use log::info;
@@ -33,11 +34,12 @@ fn main() -> Result<()> {
     let options = Options::from_args();
     libremexre::init_logger(options.verbose, options.quiet);
 
-    // Start the renderer.
+    // Start the renderer, load the assets, and assemble the parts into the engine.
     let (renderer, mut event_loop) = init_renderer!()?;
-
-    // Assemble the parts into the engine.
-    let mut engine = Engine::new().build_par_pass().add(renderer).finish();
+    let mut engine = Engine::new(Assets::default())
+        .build_par_pass()
+        .add(renderer)
+        .finish();
 
     /*
     // Create the main entity.

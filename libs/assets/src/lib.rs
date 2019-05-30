@@ -45,12 +45,17 @@ use std::{collections::BTreeMap, error::Error, sync::Arc};
 use vulkano::{device::Device, pipeline::shader::ShaderModule};
 
 /// The assets loaded from an `IRB`.
-#[derive(Debug, Index)]
+#[derive(Debug, Default, Index)]
 pub struct Assets {
     assets: BTreeMap<String, Arc<Asset>>,
 }
 
 impl Assets {
+    /// Creates a new, empty `Assets`.
+    pub fn new() -> Assets {
+        Assets::default()
+    }
+
     /// Loads assets from an `IRB`, instantiating them on the given Vulkan device. Assets that fail
     /// to load will not be present in the `Assets` object, and will instead produce errors.
     pub fn from_irb(

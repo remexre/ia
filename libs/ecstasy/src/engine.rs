@@ -84,6 +84,7 @@ pub struct EnginePassBuilder<P: SystemMut, B: System> {
 
 impl<P: SystemMut, B: System> EnginePassBuilder<P, B> {
     /// Adds a `System` to be run in parallel with the rest of the pass.
+    #[allow(clippy::should_implement_trait)]
     pub fn add<T: System>(self, system: T) -> EnginePassBuilder<P, Hlist![T, ...B]> {
         EnginePassBuilder {
             engine: self.engine,

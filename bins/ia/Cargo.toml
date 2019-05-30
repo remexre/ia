@@ -9,12 +9,6 @@ assets = { path = "../../libs/assets" }
 ecstasy = { path = "../../libs/ecstasy" }
 libremexre = { features = ["log", "pretty_env_logger"], version = "0.1.9" }
 log = "0.4.6"
-packer = { git = "https://github.com/remexre/packer", optional = true }
 renderer = { path = "../../libs/renderer" }
 structopt = "0.2.15"
 winit = "0.18.0"
-
-[features]
-default = ["load_assets"]
-bundle_assets = ["packer", "packer/always_pack"]
-load_assets = ["assets/disk"]

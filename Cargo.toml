@@ -10,6 +10,3 @@ members = [
 	"libs/iqm",
 	"libs/renderer",
 ]
-
-[patch.crates-io]
-typetag = { git = "https://github.com/remexre/typetag" }
