@@ -4,6 +4,7 @@
 //! -------
 //!
 //! ```
+//! # use assets::Assets;
 //! # use ecstasy::{
 //! #     components::{DebugFlag, Name},
 //! #     system, system_mut, Component, ComponentStore, Engine, Entity, System,
@@ -36,7 +37,7 @@
 //! }
 //!
 //! let mut n = AtomicUsize::new(0);
-//! let mut engine = Engine::new()
+//! let mut engine = Engine::new(Assets::default())
 //!     .add_mut_pass(IncrCounter)
 //!     .build_par_pass()
 //!         .add(AssertNameHas3Bytes)
